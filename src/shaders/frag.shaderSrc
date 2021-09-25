@@ -1,0 +1,11 @@
+#version 330 core
+
+smooth in vec4 fragColor;
+
+out vec4 outCol;
+
+void
+main(void)
+{
+	outCol = fragColor;
+}

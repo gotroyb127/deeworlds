@@ -1,0 +1,9 @@
+.redo/
+/obj/
+
+/obj.list
+/compile
+/link
+/beeworlds
+
+*.shaderStr
