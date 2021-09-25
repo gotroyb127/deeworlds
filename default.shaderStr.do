@@ -1,5 +1,7 @@
 #!/bin/sh
 
+redo-ifchange $2.shaderSrc
+
 sed -E '
 	s/"/\"/g
 	s/\\/\\\\/g

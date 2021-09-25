@@ -4,7 +4,7 @@ set -- "$1" "src/${2#obj/}" "$3"
 
 getDeps() {
 	awk "/^${1##*/}/"' {
-		for (i = 2; i <= NF; i++)
+		for (i = 1; i <= NF; i++)
 			print "src/" $i
 		exit
 	}' src.list
