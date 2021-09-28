@@ -1,9 +1,10 @@
 .redo/
 /obj/
 
-/obj.list
-/compile
-/link
+/make.mode
+/*.obj.list
+/*.compile
+/*.link
 /beeworlds
 
 *.shaderStr

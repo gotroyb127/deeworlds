@@ -1,9 +1,25 @@
+#!/bin/sh
+
 cc=${CC:-cc}
 
-includes='-Isrc/glad/include'
-defines=
-cppflags="$includes $defines"
+incs='-Isrc/glad/include'
+defs=
+cppflags="$incs $defs"
 
-cflags="-std=c99 -Wall -pedantic -Werror $cppflags"
+cflags="-std=c99 -Wall -pedantic $cppflags"
+ldflags='-lglfw -ldl -lm'
 
-ldflags='-lglfw -ldl -lm -O0'
+case $mode in
+(debug)
+	cflags_extra='-Werror -g -Og'
+	ldflags_extra=
+;;
+(optimized)
+	cflags_extra='-O2'
+	ldflags_extra=
+;;
+(*)
+	echo 'unknown mode (or none given)' >&2
+	exit 1
+;;
+esac

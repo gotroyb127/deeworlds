@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -- "$1" "src/${2#obj/}" "$3"
+set -- "$1" "src/${2#obj/*/}" "$3"
 
 getDeps() {
 	awk "/^${1##*/}/"' {
@@ -10,6 +10,7 @@ getDeps() {
 	}' src.list
 }
 
-redo-ifchange compile $(getDeps $2.c)
+mode=$(cat make.mode)
+redo-ifchange $mode.compile $(getDeps $2.c)
 
-./compile -c $2.c -o $3
+./$mode.compile -c $2.c -o $3

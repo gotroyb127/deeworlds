@@ -1,6 +1,12 @@
 #!/bin/sh
 
-redo-ifchange link obj.list
-redo-ifchange $(cat obj.list)
+[ ! -e make.mode ] &&
+	echo debug > make.mode
+mode=$(cat make.mode)
 
-./link -o $3 $(cat obj.list)
+echo "mode: $mode" >&2
+
+redo-ifchange make.mode $mode.link $mode.obj.list
+redo-ifchange $(cat $mode.obj.list)
+
+./$mode.link -o $3 $(cat $mode.obj.list)
