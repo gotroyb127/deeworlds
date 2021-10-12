@@ -1,7 +1,7 @@
 #version 330 core
 
 layout (location = 0) in vec4 inPos;
-layout (location = 1) in vec3 inCol;
+layout (location = 1) in vec4 inCol;
 
 smooth out vec4 fragColor;
 
@@ -11,11 +11,7 @@ uniform mat4 modelToWorld;
 void
 main(void)
 {
-	vec4 pos;
-//	pos = vec4(inPos.xyz, 1.f);
-	pos = inPos;
+	gl_Position = worldToView * modelToWorld * inPos;
 
-	gl_Position = worldToView * modelToWorld * pos;
-
-	fragColor = vec4(inCol, 1.f);
+	fragColor = inCol;
 }

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-cc=${CC:-cc}
+cc=cc
 
 incs='-Isrc/glad/include'
 defs=

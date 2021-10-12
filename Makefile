@@ -1,5 +1,7 @@
+NPROC = $$(nproc)
+
 all:
-	redo-ifchange all
+	redo-ifchange -j ${NPROC} $@
 
 debug:
 	echo $@ > make.mode
@@ -10,6 +12,9 @@ optimized:
 
 run: all
 	./beeworlds
+
+gdb: debug all
+	gdb ./beeworlds
 
 clean:
 	redo $@

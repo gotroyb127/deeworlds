@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <glad/gl.h>
@@ -7,62 +6,34 @@
 #include "util.h"
 #include "draw.h"
 #include "world.h"
-#include "worldAction.h"
+#include "input.h"
 
+/* static variables */
 static GLFWwindow *sWin;
-
-/* TODO: add declerations of static function */
 
 #include "config.h"
 
+/* static function declerations */
+static void handleErr(int err, char const *desc);
+static void handleFrambufferResize(GLFWwindow *win, int w, int h);
+static void handleNeedRefresh(GLFWwindow *win);
+static void handleFocus(GLFWwindow *win, int focused);
+static int initWin(void);
+static void term(int status);
+static void run(void);
+
+/* function implementations */
 void
-handleErr(int err, const char *desc)
+handleErr(int err, char const *desc)
 {
 	eprintf("received glfw error no. %d: %s.\n", err, desc);
-}
-
-void
-handleKey(GLFWwindow *win, int key, int scancode, int action, int mods)
-{
-	int i;
-	WorldActionKey const *wa;
-
-	if (action != GLFW_PRESS) {
-		worldNeedDraw(0);
-		return;
-	}
-
-	for (i = 0; i < LENGTH(sWorldActionKeys); i++) {
-		wa = &sWorldActionKeys[i];
-
-		if (wa->key == key
-		&& wa->action == action
-		&& wa->mods == mods) {
-			assert(wa->func != NULL);
-			wa->func(wa->arg);
-		}
-	}
-
-	switch (key) {
-	case GLFW_KEY_R:
-		worldNeedDraw(1);
-		break;
-	case GLFW_KEY_LEFT_BRACKET:
-		if (mods != GLFW_MOD_CONTROL)
-			break;
-		/* FALLTHROUGH */
-	case GLFW_KEY_ESCAPE:
-		glfwSetWindowShouldClose(win, GLFW_TRUE);
-		break;
-	default:
-		worldNeedDraw(0);
-	}
 }
 
 void
 handleFrambufferResize(GLFWwindow *win, int w, int h)
 {
 	glViewport(0, 0, w, h);
+	drawSetAspectRatio((float)w / h);
 }
 
 // but first make sure if it is needed
@@ -73,10 +44,19 @@ handleNeedRefresh(GLFWwindow *win)
 	glfwSwapBuffers(win);
 }
 
-int
-initGLFW(void)
+void
+handleFocus(GLFWwindow *win, int focused)
 {
-	glfwSetErrorCallback(handleErr);
+	if (focused)
+		glfwSetInputMode(sWin, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	else
+		glfwSetInputMode(sWin, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+}
+
+int
+initWin(void)
+{
+	glfwSetErrorCallback(&handleErr);
 
 	if (!glfwInit())
 		return 0;
@@ -91,9 +71,16 @@ initGLFW(void)
 	glfwMakeContextCurrent(sWin);
 	gladLoadGL(glfwGetProcAddress);
 
-	glfwSetKeyCallback(sWin, handleKey);
-	glfwSetFramebufferSizeCallback(sWin, handleFrambufferResize);
-	glfwSetWindowRefreshCallback(sWin, handleNeedRefresh);
+	glfwSetFramebufferSizeCallback(sWin, &handleFrambufferResize);
+	glfwSetWindowRefreshCallback(sWin, &handleNeedRefresh);
+	glfwSetWindowFocusCallback(sWin, &handleFocus);
+
+	glfwSetInputMode(sWin, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetCursorPos(sWin, 0.0, 0.0);
+
+	glfwSetKeyCallback(sWin, &inputKey);
+	glfwSetMouseButtonCallback(sWin, &inputMouseButton);
+	glfwSetCursorPosCallback(sWin, &inputCursorPos);
 
 	return 1;
 }
@@ -102,7 +89,7 @@ void
 run(void)
 {
 	while (!glfwWindowShouldClose(sWin)) {
-		if (worldUpdateState()) {
+		if (worldUpdateState(glfwGetTime())) {
 			drawFrame();
 			glfwSwapBuffers(sWin);
 		}
@@ -124,9 +111,10 @@ term(int status)
 int
 main(int argc, char *argv[])
 {
-	if (!initGLFW() || !drawInit())
+	if (!initWin() || !drawInit())
 		term(1);
 
+	worldInit();
 	run();
 	term(0);
 }
