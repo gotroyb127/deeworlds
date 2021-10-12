@@ -2,7 +2,7 @@
 
 redo clean-obj
 
-rm -f beeworlds
+rm -f deeworlds
 while read mode
 do
 	rm -f $mode.obj.list $mode.compile $mode.link

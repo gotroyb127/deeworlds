@@ -11,10 +11,10 @@ optimized:
 	echo $@ > make.mode
 
 run: all
-	./beeworlds
+	./deeworlds
 
 gdb: debug all
-	gdb ./beeworlds
+	gdb ./deeworlds
 
 clean:
 	redo $@

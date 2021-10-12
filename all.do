@@ -1,3 +1,3 @@
 #!/bin/sh
 
-redo-ifchange beeworlds
+redo-ifchange deeworlds

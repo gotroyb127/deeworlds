@@ -1,4 +1,4 @@
-beeworlds.c    util.h draw.h world.h input.h config.h glad/include/glad/gl.h
+deeworlds.c    util.h draw.h world.h input.h config.h glad/include/glad/gl.h
 draw.c         util.h vecmath.h world.h worldProtected.h shaders/vert.shaderStr shaders/frag.shaderStr glad/include/glad/gl.h
 input.c        util.h vecmath.h world.h playerAction.h input.h inputConfig.h
 player.c       player.h
