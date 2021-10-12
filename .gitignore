@@ -7,4 +7,10 @@
 /*.link
 /deeworlds
 
+/all
+/clean
+/clean-obj
+
+.dep.*
+
 *.shaderStr

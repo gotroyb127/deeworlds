@@ -1,7 +1,8 @@
 NPROC = $$(nproc)
+REDO = REDO_STDOUT=1 redo -j ${NPROC}
 
 all:
-	redo-ifchange -j ${NPROC} $@
+	${REDO} $@
 
 debug:
 	echo $@ > make.mode
@@ -17,6 +18,8 @@ gdb: debug all
 	gdb ./deeworlds
 
 clean:
-	redo $@
+	${REDO} $@
 clean-obj:
-	redo $@
+	${REDO} $@
+
+.PHONY: all debug opt optimized run gdb clean clean-obj

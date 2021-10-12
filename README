@@ -1,0 +1,48 @@
+deeworlds: an attempt to bring the teeworlds concepts to 3D
+
+It is under development so don't expect anything yet.
+
+Building:
+	'redo' is used to handle the building but requires a POSIX environment.
+	See 'https://redo.readthedocs.io/en/latest/', 'https://github.com/apenwarr/redo',
+	'http://www.goredo.cypherpunks.ru/', 'https://github.com/leahneukirchen/redo-c'.
+
+	Also you will need the GLFW headers and a compiled library
+	to link to.
+
+	There are two modes of building: debug and optimized.
+	To set the building mode to 'debug' run:
+		make debug
+	To set the building mode to 'optimized' run:
+		make opt
+	or
+		make optimized
+	then run
+		make
+	to actually build.
+
+	You can use:
+		make run
+	to run the executable.
+
+Configuration:
+	'config.sh' contains the flags that are passed to the compiler and linker.
+	You can adjust them to fit your needs.
+	'src/inputConfig.h' contains actions to be taken at given input.
+
+About the LICENSE:
+	As far as I am concerned, I'd like to use a public domain licence,
+	but I need to contact the 'teeworlds' guys sometime.
+
+You can contact me via github if you have something to ask, etc...
+
+Contributions are welcome, but notice the coding style:
+
+Coding style:
+	Unless otherwise nesseccary, (e.g. anonymous struct/unions, etc...)
+	we'd rather stick to C99, otherwise we may use certain features of C11.
+	Most pricniples are inpsired from 'https://suckless.org/coding_style/'.
+	In addition, static variables are prefixed with 's', globals with 'g',
+	static functions have their prototype at the beginning of the file and
+	non-static functions follow static functions' implementatations.
+	You can also use the surrounding code for reference.
