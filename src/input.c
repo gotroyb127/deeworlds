@@ -10,7 +10,7 @@
 #include "inputConfig.h"
 
 void
-inputKey(GLFWwindow *win, int key, int scancode, int action, int mods)
+inputKey(int key, int mods, int action)
 {
 	ActionKey const *ak;
 	unsigned int i;
@@ -27,7 +27,7 @@ inputKey(GLFWwindow *win, int key, int scancode, int action, int mods)
 }
 
 void
-inputMouseButton(GLFWwindow *win, int button, int action, int mods)
+inputMouseButton(int button, int mods, int action)
 {
 	ActionMouseButton const *amb;
 	unsigned int i;
@@ -44,10 +44,10 @@ inputMouseButton(GLFWwindow *win, int button, int action, int mods)
 }
 
 void
-inputCursorPos(GLFWwindow *win, double xPos, double yPos)
+inputCursorPos(double xPos, double yPos)
 {
 	static double xPrev, yPrev;
-	static int once;
+	static int once = 0;
 
 	ActionCursor const *ac;
 	ActionArg arg;
@@ -68,7 +68,7 @@ inputCursorPos(GLFWwindow *win, double xPos, double yPos)
 	for (i = 0; i < NELEM(sActionsCursor); i++) {
 		ac = &sActionsCursor[i];
 		for (c = 0; c < 3; c++)
-			VEC3_COMP_IDX(arg.v3, c) = vec2_cross(&ac->v2s[c], &dm);
+			VEC3_COMP_IDX(arg.v3, c) = vec2_dot(&ac->v2s[c], &dm);
 		ac->func(&arg);
 	}
 }

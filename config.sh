@@ -1,6 +1,7 @@
 #!/bin/sh
 
 cc=cc
+#cc=clang
 
 incs='-Isrc/glad/include'
 defs=
@@ -12,6 +13,7 @@ ldflags='-lglfw -ldl -lm'
 case $mode in
 (debug)
 	cflags_extra='-Werror -g -Og'
+#	cflags_extra="$cflags_extra -Wextra"
 	ldflags_extra=
 ;;
 (optimized)

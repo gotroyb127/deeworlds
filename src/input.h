@@ -1,5 +1,5 @@
 /* input.h */
 
-void inputKey(GLFWwindow *win, int key, int scancode, int action, int mods);
-void inputMouseButton(GLFWwindow *win, int button, int action, int mods);
-void inputCursorPos(GLFWwindow *win, double xPos, double yPos);
+void inputKey(int key, int mods, int action);
+void inputMouseButton(int button, int mods, int action);
+void inputCursorPos(double xPos, double yPos);

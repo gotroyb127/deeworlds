@@ -280,7 +280,7 @@ drawFrame(void)
 	vec3 eyePos, eyeDir;
 	float yFov, aspectRatio, zNear, zFar;
 
-	yFov = DEG_TO_RAD(100.f);
+	yFov = M_DEG_TO_RAD(100.f);
 	aspectRatio = sAspectRatio;
 	zNear = 0.5f;
 	zFar = 100.f;
@@ -304,19 +304,17 @@ drawFrame(void)
 	glUniformMatrix4fv(sWorldToView.unf, 1, GL_FALSE, &sWorldToView.mat.raw[0][0]);
 
 #if 0
-	static size_t n;
-
-	if (++n > 1)
+	static unsigned int n;
+	if (n++)
 		printf("\033[4A\033[K");
 	MAT4_PRINT(sWorldToView.mat);
 #elif 0
-	static size_t n;
-	if (++n > 1)
+	static unsigned int n;
+	if (n++)
 		printf("\033[2A\033[K");
 	VEC3_PRINT(eyePos);
 	VEC3_PRINT(eyeDir);
 #endif
-
 	worldObjIter(&drawObject, NULL);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);

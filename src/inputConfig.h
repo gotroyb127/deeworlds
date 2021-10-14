@@ -4,18 +4,23 @@
 
 static ActionKey const sActionsKey[] = {
 	/* key            mods              action        function                argument */
-	{ GLFW_KEY_E,     0,                GLFW_PRESS,   ACTION(SetAccel), {.v3 = { 0.f, 0.f, 1.f }} },
+	{ GLFW_KEY_E,     0,                GLFW_PRESS,   ACTION(AddAccel), {.v3 = { 0.f, 0.f, 1.f }} },
 	{ GLFW_KEY_E,     0,                GLFW_RELEASE, ACTION(SubAccel), {.v3 = { 0.f, 0.f, 1.f }} },
 
-	{ GLFW_KEY_D,     0,                GLFW_PRESS,   ACTION(SetAccel), {.v3 = { 0.f, 0.f, -1.f }} },
+	{ GLFW_KEY_D,     0,                GLFW_PRESS,   ACTION(AddAccel), {.v3 = { 0.f, 0.f, -1.f }} },
+	{ GLFW_KEY_D,     0,                GLFW_RELEASE, ACTION(SubAccel), {.v3 = { 0.f, 0.f, -1.f }} },
 
-	{ GLFW_KEY_S,     0,                GLFW_PRESS,   ACTION(SetAccel), {.v3 = { -1.f, 0.f, 0.f }} },
+	{ GLFW_KEY_S,     0,                GLFW_PRESS,   ACTION(AddAccel), {.v3 = { -1.f, 0.f, 0.f }} },
+	{ GLFW_KEY_S,     0,                GLFW_RELEASE, ACTION(SubAccel), {.v3 = { -1.f, 0.f, 0.f }} },
 
-	{ GLFW_KEY_F,     0,                GLFW_PRESS,   ACTION(SetAccel), {.v3 = { 1.f, 0.f, 0.f }} },
+	{ GLFW_KEY_F,     0,                GLFW_PRESS,   ACTION(AddAccel), {.v3 = { 1.f, 0.f, 0.f }} },
+	{ GLFW_KEY_F,     0,                GLFW_RELEASE, ACTION(SubAccel), {.v3 = { 1.f, 0.f, 0.f }} },
 
-	{ GLFW_KEY_SPACE, 0,                GLFW_PRESS,   ACTION(SetAccel), {.v3 = { 0.f, 1.f, 0.f }} },
+	{ GLFW_KEY_SPACE, 0,                GLFW_PRESS,   ACTION(AddAccel), {.v3 = { 0.f, 1.f, 0.f }} },
+	{ GLFW_KEY_SPACE, 0,                GLFW_RELEASE, ACTION(SubAccel), {.v3 = { 0.f, 1.f, 0.f }} },
 
-	{ GLFW_KEY_SPACE, GLFW_MOD_CONTROL, GLFW_PRESS,   ACTION(SetAccel), {.v3 = { 0.f, -1.f, 0.f }} },
+	{ GLFW_KEY_SPACE, GLFW_MOD_CONTROL, GLFW_PRESS,   ACTION(AddAccel), {.v3 = { 0.f, -1.f, 0.f }} },
+	{ GLFW_KEY_SPACE, GLFW_MOD_CONTROL, GLFW_RELEASE, ACTION(SubAccel), {.v3 = { 0.f, -1.f, 0.f }} },
 };
 
 float const radsPerPixel = 1 / 450.f;
