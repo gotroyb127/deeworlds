@@ -5,8 +5,9 @@ typedef struct {
 	vec3 pos;
 } WorldObject;
 
-enum /*WorldObjectType*/ {
-	WORLD_BLK_EMPTY,
+enum WorldObjectType {
+	WORLD_BLK_EMPTY = -1,
+	WORLD_BLK_AIR = 0,
 	WORLD_BLK_HOOKABLE,
 	WORLD_BLK_UNHOOKABLE,
 	WORLD_BLK_LAST,

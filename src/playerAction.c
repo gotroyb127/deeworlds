@@ -2,6 +2,7 @@
 
 #include "vecmath.h"
 #include "world.h"
+#include "worldParams.h"
 #include "player.h"
 #include "playerAction.h"
 

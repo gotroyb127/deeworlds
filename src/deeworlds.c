@@ -104,6 +104,7 @@ initWin(void)
 
 	glfwMakeContextCurrent(sWin);
 	gladLoadGL(glfwGetProcAddress);
+	glfwSwapInterval(1); /* 1 means vsync */
 
 	glfwSetFramebufferSizeCallback(sWin, &handleFrambufferResize);
 	glfwSetWindowRefreshCallback(sWin, &handleNeedRefresh);
@@ -114,7 +115,7 @@ initWin(void)
 	glfwSetCursorPosCallback(sWin, &handleCursorPos);
 
 	glfwSetInputMode(sWin, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	glfwSetCursorPos(sWin, 0.0, 0.0);
+//	glfwSetCursorPos(sWin, 0.0, 0.0);
 
 	return 1;
 }
@@ -123,7 +124,7 @@ void
 run(void)
 {
 	while (!glfwWindowShouldClose(sWin)) {
-		if (worldUpdateState(glfwGetTime())) {
+		if (worldUpdate(glfwGetTime())) {
 			drawFrame();
 			glfwSwapBuffers(sWin);
 		}

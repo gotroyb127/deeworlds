@@ -4,22 +4,34 @@
 #include "vecmath.h"
 #include "world.h"
 #include "worldProtected.h"
+#include "worldParams.h"
+#include "worldParamsConfig.h"
 #include "player.h"
 
 #define WORLD_MAX_X 60
 #define WORLD_MAX_Y 60
 #define WORLD_WIDTH 6
 
+typedef struct {
+	enum WorldObjectType objs[WORLD_MAX_X][WORLD_MAX_Y];
+	ivec3 spawn;
+} WorldMap;
+
 /* static variables */
-static double const sTimescale = 1.0;
+static double const sTimeScale = 1.0;
 
 #define E WORLD_BLK_EMPTY,
+#define A WORLD_BLK_AIR,
 #define H WORLD_BLK_HOOKABLE,
 #define U WORLD_BLK_UNHOOKABLE,
-static int sWorldObjects[WORLD_MAX_X][WORLD_MAX_Y] = {
-	{ E E E H E H H },
-	{ H H H E U H E },
-	{ E E E H E E H },
+static WorldMap const sMap = {
+	.objs = {
+		{ A A A H A H H },
+		{ H H H A U H A },
+		{ A A A H A A H },
+		{ E E E E E E E },
+	},
+	.spawn = { 3, 3, 3 },
 };
 #undef E
 #undef H
@@ -47,10 +59,13 @@ worldObjIter(int (*visit)(WorldObject const*, void*), void *data)
 		for (y = 0; y < WORLD_MAX_Y; y++) {
 			ob.pos.y = y;
 
+			if (sMap.objs[y][x] == WORLD_BLK_EMPTY)
+				break;
+
 			for (z = 0; z < WORLD_WIDTH; z++) {
 				ob.pos.z = z;
 
-				ob.type = sWorldObjects[y][x];
+				ob.type = sMap.objs[y][x];
 				if (!visit(&ob, data))
 					return;
 			}
@@ -63,20 +78,21 @@ void
 worldInit(void)
 {
 	playerInit();
+	playerSpawn(&(vec3){ sMap.spawn.x, sMap.spawn.y, sMap.spawn.z });
 }
 
 int
-worldUpdateState(double sysTime)
+worldUpdate(double sysTime)
 {
 	static double prevTime = 0.0;
-	double tm, dt;
+	double dt;
 
 	if (!prevTime)
 		prevTime = sysTime;
-	dt = sTimescale * (sysTime - prevTime);
-	tm = sTimescale * sysTime;
+	dt = sTimeScale * (sysTime - prevTime);
+	prevTime = sysTime;
 
-	playerGotoNextPos(tm, dt);
+	playerMove(&sWorldCfg.motionGround, dt);
 
 	return 1;
 }

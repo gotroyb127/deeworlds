@@ -2,6 +2,9 @@
 
 #include "vecmath.h"
 
+/* vec2 */
+vec2 const vec2_zero = { 0.f, 0.f };
+
 void
 vec2_add(vec2 *ret, vec2 const *v1, vec2 const *v2)
 {
@@ -43,10 +46,19 @@ vec2_dot(vec2 const *v1, vec2 const *v2)
 }
 
 float
+vec2_norm2(vec2 const *vec)
+{
+	return vec2_dot(vec, vec);
+}
+
+float
 vec2_norm(vec2 const *vec)
 {
-	return sqrt(vec2_dot(vec, vec));
+	return sqrt(vec2_norm2(vec));
 }
+
+/* vec3 */
+vec3 const vec3_zero = { 0.f, 0.f, 0.f };
 
 void
 vec3_add(vec3 *ret, vec3 const *v1, vec3 const *v2)
@@ -85,6 +97,18 @@ vec3_scale(vec3 *ret, vec3 const *vec, float f)
 	};
 }
 
+void
+vec3_normalize(vec3 *ret, vec3 const *vec)
+{
+	float n;
+
+	if ((n = vec3_norm(vec)) == 0.f) {
+		*ret = vec3_zero;
+		return;
+	}
+	vec3_scale(ret, vec, 1 / n);
+}
+
 float
 vec3_dot(vec3 const *v1, vec3 const *v2)
 {
@@ -92,20 +116,23 @@ vec3_dot(vec3 const *v1, vec3 const *v2)
 }
 
 float
-vec3_norm(vec3 const *vec)
+vec3_norm2(vec3 const *vec)
 {
-	return sqrt(vec3_dot(vec, vec));
+	return vec3_dot(vec, vec);
 }
 
-void
-mat3_identity(mat3 *ret)
+float
+vec3_norm(vec3 const *vec)
 {
-	*ret = (mat3)MAT3_INIT(
-		1.f, 0.f, 0.f,
-		0.f, 1.f, 0.f,
-		0.f, 0.f, 1.f,
-	);
+	return sqrt(vec3_norm2(vec));
 }
+
+/* mat3 */
+mat3 const mat3_identity = MAT3_INIT(
+	1.f, 0.f, 0.f,
+	0.f, 1.f, 0.f,
+	0.f, 0.f, 1.f,
+);
 
 void
 mat3_mul(mat3 *ret, mat3 const *m1, mat3 const *m2)
@@ -207,16 +234,13 @@ mat3_to_mat4(mat4 *ret, mat3 const *mat)
 	}};
 }
 
-void
-mat4_identity(mat4 *ret)
-{
-	*ret = (mat4)MAT4_INIT(
-		1.f, 0.f, 0.f, 0.f,
-		0.f, 1.f, 0.f, 0.f,
-		0.f, 0.f, 1.f, 0.f,
-		0.f, 0.f, 0.f, 1.f,
-	);
-}
+/* mat4 */
+mat4 const mat4_identity = MAT4_INIT(
+	1.f, 0.f, 0.f, 0.f,
+	0.f, 1.f, 0.f, 0.f,
+	0.f, 0.f, 1.f, 0.f,
+	0.f, 0.f, 0.f, 1.f,
+);
 
 void
 mat4_mul(mat4 *ret, mat4 const *m1, mat4 const *m2)

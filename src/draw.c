@@ -172,7 +172,7 @@ initProg(void)
 	sWorldToView.unf = glGetUniformLocation(sProg, "worldToView");
 	sModelToWorld.unf = glGetUniformLocation(sProg, "modelToWorld");
 
-	mat4_identity(&sModelToWorld.mat);
+	sModelToWorld.mat = mat4_identity;
 
 	glUseProgram(sProg);
 	glUniformMatrix4fv(sWorldToView.unf, 1, GL_FALSE, &sWorldToView.mat.raw[0][0]);
@@ -224,7 +224,7 @@ drawObject(WorldObject const *wob, void *data)
 {
 	vec3 pos;
 
-	if (wob->type == WORLD_BLK_EMPTY)
+	if (wob->type == WORLD_BLK_AIR)
 		return 1;
 
 	vec3_negate(&pos, &wob->pos);
@@ -277,32 +277,28 @@ drawFrame(void)
 	glBindBuffer(GL_ARRAY_BUFFER, sVertBuf);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sIdxBuf);
 
+	mat4 *mat;
 	vec3 eyePos, eyeDir;
 	float yFov, aspectRatio, zNear, zFar;
 
-	yFov = M_DEG_TO_RAD(100.f);
+	yFov = M_DEG_TO_RAD(110.f);
 	aspectRatio = sAspectRatio;
-	zNear = 0.5f;
+	zNear = 0.25f;
 	zFar = 100.f;
-
-//	zNear = 1.5f;
-//	zFar = 5.f;
 
 	worldGetEyePos(&eyePos, &eyeDir);
 
-	mat4 *m = &sWorldToView.mat;
-
-	mat4_perspective(m, yFov, aspectRatio, zNear, zFar);
+	mat = &sWorldToView.mat;
+	mat4_perspective(mat, yFov, aspectRatio, zNear, zFar);
 #if 1
-	mat4_apply_cam(m, m, &eyePos, &eyeDir);
+	mat4_apply_cam(mat, mat, &eyePos, &eyeDir);
 #else
-	mat4_rot_z(m, m, eyeDir.z);
-	mat4_rot_x(m, m, eyeDir.x);
-	mat4_rot_y(m, m, eyeDir.y);
-	mat4_translate(m, m, &eyePos);
+	mat4_rot_z(mat, mat, eyeDir.z);
+	mat4_rot_x(mat, mat, eyeDir.x);
+	mat4_rot_y(mat, mat, eyeDir.y);
+	mat4_translate(mat, mat, &eyePos);
 #endif
 	glUniformMatrix4fv(sWorldToView.unf, 1, GL_FALSE, &sWorldToView.mat.raw[0][0]);
-
 #if 0
 	static unsigned int n;
 	if (n++)
