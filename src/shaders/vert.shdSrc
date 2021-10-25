@@ -1,0 +1,16 @@
+#version 330 core
+
+layout (location = 0) in vec4 inPos;
+layout (location = 1) in vec2 inTexPos;
+
+smooth out vec2 smTexPos;
+
+uniform mat4 worldToView;
+uniform mat4 modelToWorld;
+
+void
+main(void)
+{
+	gl_Position = worldToView * modelToWorld * inPos;
+	smTexPos = inTexPos;
+}

@@ -1,11 +1,26 @@
+#include <stddef.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
 #include <glad/gl.h>
 
 #include "util.h"
+#include "draw.h"
+#include "drawUtil.h"
+#include "drawLoad.h"
 #include "vecmath.h"
 #include "world.h"
 #include "worldProtected.h"
+
+typedef struct {
+	vec3 pos;
+	vec2 texPos;
+} VertexData;
+
+typedef struct {
+	const char *texFnm;
+	GLuint tex;
+} BlockTexture;
 
 typedef struct {
 	mat4 mat;
@@ -13,176 +28,96 @@ typedef struct {
 } MatrixUniform;
 
 /* static funcitions declerations */
-static int compileShad(GLuint *retShad, GLenum shadType, char const *src);
-static int linkProg(GLuint *prog, size_t n, GLuint shads[n]);
 static int initProg(void);
-static void initBufs(void);
+static int initBufs(void);
+static int initTexs(void);
 static int drawObject(WorldObject const *wob, void *data);
 
 /* static variables */
-static float sAspectRatio = 1.f;
-
 static char const *sVertShadSrc = {
-	#include "shaders/vert.shaderStr"
+	#include "shaders/vert.shdStr"
 };
 
 static char const *sFragShadSrc = {
-	#include "shaders/frag.shaderStr"
+	#include "shaders/frag.shdStr"
+};
+
+static VertexData const sVertData[] = {
+	/*  pos                texPos  */
+	{ { 0.f, 0.f, 0.f }, { 0.f, 0.f } },
+	{ { 0.f, 1.f, 0.f }, { 0.f, 1.f } },
+	{ { 1.f, 1.f, 0.f }, { 1.f, 1.f } },
+	{ { 1.f, 0.f, 0.f }, { 1.f, 0.f } },
+	{ { 1.f, 0.f, 1.f }, { -2.f, 0.f } },
+	{ { 0.f, 0.f, 1.f }, { -1.f, 0.f } },
+	{ { 0.f, 1.f, 1.f }, { -1.f, 1.f } },
+	{ { 1.f, 1.f, 1.f }, { -2.f, 1.f } },
+
+	{ { 1.f, 1.f, 0.f }, { -3.f, 1.f } },
+	{ { 1.f, 0.f, 0.f }, { -3.f, 0.f } },
+
+	{ { 0.f, 1.f, 1.f }, { 0.f, 2.f } },
+	{ { 1.f, 1.f, 1.f }, { 1.f, 1.f } },
+
+	{ { 1.f, 0.f, 1.f }, { 1.f, 0.f } },
+	{ { 0.f, 0.f, 1.f }, { 0.f, 0.f } },
+	{ { 0.f, 0.f, 0.f }, { 0.f, 1.f } },
+	{ { 1.f, 0.f, 0.f }, { 1.f, 1.f } },
+};
+
+static GLushort const sIdxArr[] = {
+	 0,  1,  3,   3,  1, 2,
+	 0,  5,  6,   0,  6, 1,
+	 5,  4,  7,   5,  7, 6,
+	 4,  9,  8,   4,  8, 7,
+	 1, 10,  2,   2, 10, 11,
+	13, 14, 12,  12, 14, 15,
 };
 
 static MatrixUniform sModelToWorld, sWorldToView;
 static GLuint sProg, sVao, sVertBuf, sIdxBuf;
-
-#define r_ 1.f, 0.f, 0.f
-#define g_ 0.f, 1.f, 0.f
-#define b_ 0.f, 0.f, 1.f
-
-static GLfloat const sVertData[] = {
-	0.f, 0.f, 0.f,
-	1.f, 0.f, 0.f,
-	1.f, 1.f, 0.f,
-	0.f, 1.f, 0.f,
-
-	0.f, 1.f, 1.f,
-	0.f, 0.f, 1.f,
-	1.f, 0.f, 1.f,
-	1.f, 1.f, 1.f,
-
-	r_, g_, b_, b_,
-	r_, g_, b_, b_,
-};
-
-static GLushort const sIdxArr[] = {
-	0, 2, 1,
-	0, 3, 2,
-
-	0, 4, 3,
-	0, 5, 4,
-
-	4, 5, 6,
-	4, 6, 7,
-
-	2, 3, 4,
-	2, 4, 7,
-
-	1, 2, 7,
-	1, 7, 6,
-
-	0, 1, 5,
-	1, 6, 5,
+static GLuint sCurrTexUnf;
+static float sAspectRatio = 1.f;
+static BlockTexture sBlkTexs[WORLD_BLK_LAST] = {
+	[WORLD_BLK_AIR]    = {.texFnm = NULL},
+//	[WORLD_BLK_HKABLE] = {.texFnm = "data/texs/clown.ff"},
+//	[WORLD_BLK_UHABLE] = {.texFnm = "data/texs/clown.ff"},
+	[WORLD_BLK_HKABLE] = {.texFnm = "data/texs/blk_hkable.ff"},
+	[WORLD_BLK_UHABLE] = {.texFnm = "data/texs/blk_uhable.ff"},
 };
 
 /* static function implementations */
 int
-compileShad(GLuint *retShad, GLenum shadType, char const *src)
-{
-	GLint status;
-	GLuint shad;
-
-	shad = glCreateShader(shadType);
-	glShaderSource(shad, 1, &src, NULL);
-	glCompileShader(shad);
-
-	glGetShaderiv(shad, GL_COMPILE_STATUS, &status);
-	if (!status) {
-		GLint logLen;
-		char const *shTypeStr;
-
-		switch (shadType) {
-		case GL_VERTEX_SHADER:
-			shTypeStr = "vertex";
-			break;
-		case GL_GEOMETRY_SHADER:
-			shTypeStr = "geometry";
-			break;
-		case GL_FRAGMENT_SHADER:
-			shTypeStr = "fragment";
-			break;
-		default:
-			shTypeStr = "(unknown)";
-		}
-
-		glGetShaderiv(shad, GL_INFO_LOG_LENGTH, &logLen);
-
-		GLchar infoLog[logLen + 1];
-		glGetShaderInfoLog(shad, logLen, NULL, infoLog);
-
-		eprintf("Compile failure in %s shader:\n%s",
-			shTypeStr, infoLog);
-		return 0;
-	}
-
-	*retShad = shad;
-	return 1;
-}
-
-int
-linkProg(GLuint *prog, size_t n, GLuint shads[n])
-{
-	unsigned int i;
-	GLint status;
-	GLuint pr;
-
-	pr = glCreateProgram();
-	for (i = 0; i < n; i++)
-		glAttachShader(pr, shads[i]);
-	glLinkProgram(pr);
-
-	glGetProgramiv(pr, GL_LINK_STATUS, &status);
-	if (!status) {
-		GLint logLen;
-		glGetProgramiv(pr, GL_INFO_LOG_LENGTH, &logLen);
-
-		GLchar infoLog[logLen + 1];
-		glGetProgramInfoLog(pr, logLen, NULL, infoLog);
-		eprintf("Linker failure: %s", infoLog);
-
-		return 0;
-	}
-
-	*prog = pr;
-	return 1;
-}
-
-//static void
-//checkErr(void)
-//{
-//	unsigned int i;
-//	int err;
-//	for (i = 0; (err = glGetError()) != GL_NO_ERROR; i = 1)
-//		eprintf("GLerror no. %d\n", err);
-//	if (i)
-//		exit(1);
-//}
-
-int
 initProg(void)
 {
 	unsigned int i;
-	GLuint shads[2];
+	GLuint shds[2];
 
-	if (!compileShad(&shads[0], GL_VERTEX_SHADER, sVertShadSrc)
-	|| !compileShad(&shads[1], GL_FRAGMENT_SHADER, sFragShadSrc)
-	|| !linkProg(&sProg, NELEM(shads), shads))
+	if (!compileShd(&shds[0], GL_VERTEX_SHADER, sVertShadSrc)
+	|| !compileShd(&shds[1], GL_FRAGMENT_SHADER, sFragShadSrc)
+	|| !linkProg(&sProg, NELEM(shds), shds))
 		return 0;
 
-	for (i = 0; i < NELEM(shads); i++)
-		glDeleteShader(shads[i]);
+	for (i = 0; i < NELEM(shds); i++)
+		glDeleteShader(shds[i]);
 
 	sWorldToView.unf = glGetUniformLocation(sProg, "worldToView");
 	sModelToWorld.unf = glGetUniformLocation(sProg, "modelToWorld");
+
+	sCurrTexUnf = glGetUniformLocation(sProg, "currTex");
 
 	sModelToWorld.mat = mat4_identity;
 
 	glUseProgram(sProg);
 	glUniformMatrix4fv(sWorldToView.unf, 1, GL_FALSE, &sWorldToView.mat.raw[0][0]);
 	glUniformMatrix4fv(sModelToWorld.unf, 1, GL_FALSE, &sModelToWorld.mat.raw[0][0]);
+	glUniform1i(sCurrTexUnf, 0);
 	glUseProgram(0);
 
 	return 1;
 }
 
-void
+int
 initBufs(void)
 {
 	GLuint bufs[2]; /* vert, idx buffers */
@@ -210,22 +145,70 @@ initBufs(void)
 
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0,
-		(void*)(sizeof sVertData / 2));
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,
+		sizeof sVertData[0], (void *)0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE,
+		sizeof sVertData[0], (void *)offsetof(VertexData, texPos));
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
 	glBindVertexArray(0);
+
+	return 1;
+}
+
+int
+initTexs(void)
+{
+	char const *errmsg;
+	char *imgData;
+	uint32_t width, height;
+	unsigned int i;
+	BlockTexture *bt;
+
+	for (i = 0; i < NELEM(sBlkTexs); i++) {
+		bt = &sBlkTexs[i];
+
+		if (!bt->texFnm)
+			continue;
+
+		imgData = drawLoadImg(bt->texFnm, &width, &height, &errmsg);
+		if (!imgData) {
+			eprintf("fatal: drawLoadImg(%s): %s\n", bt->texFnm, errmsg);
+			return 0;
+		} else if (errmsg) {
+			eprintf("drawLoadImg(%s): %s\n", bt->texFnm, errmsg);
+		}
+
+		glGenTextures(1, &bt->tex);
+		glBindTexture(GL_TEXTURE_2D, bt->tex);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0,
+			GL_RGBA, GL_UNSIGNED_SHORT, imgData);
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+		free(imgData);
+	}
+
+	glActiveTexture(GL_TEXTURE0);
+
+	return 1;
 }
 
 int
 drawObject(WorldObject const *wob, void *data)
 {
+	BlockTexture const *bt;
 	vec3 pos;
 
-	if (wob->type == WORLD_BLK_AIR)
+	bt = &sBlkTexs[wob->type];
+	if (!bt->texFnm)
 		return 1;
+
+	glBindTexture(GL_TEXTURE_2D, bt->tex);
 
 	vec3_negate(&pos, &wob->pos);
 	mat4_translation_mat(&sModelToWorld.mat, &pos);
@@ -242,9 +225,11 @@ drawObject(WorldObject const *wob, void *data)
 int
 drawInit(void)
 {
-	if (!initProg())
+	if (!initProg()
+	|| !initBufs()
+	|| !initTexs()
+	)
 		return 0;
-	initBufs();
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);

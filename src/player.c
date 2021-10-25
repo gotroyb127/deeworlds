@@ -8,7 +8,7 @@
 
 typedef struct {
 	vec3 pos, vel;
-	vec3 reqMov; /* requested movement: */
+	vec3 reqMov; /* requested movement */
 	vec3 viewDir;
 } Player;
 
@@ -26,6 +26,7 @@ void
 playerSpawn(vec3 const *pos)
 {
 	sPlayer.pos = *pos;
+	sPlayer.vel = vec3_zero;
 }
 
 void

@@ -22,18 +22,19 @@ static double const sTimeScale = 1.0;
 
 #define E WORLD_BLK_EMPTY,
 #define A WORLD_BLK_AIR,
-#define H WORLD_BLK_HOOKABLE,
-#define U WORLD_BLK_UNHOOKABLE,
+#define H WORLD_BLK_HKABLE,
+#define U WORLD_BLK_UHABLE,
 static WorldMap const sMap = {
 	.objs = {
-		{ A A A H A H H },
-		{ H H H A U H A },
-		{ A A A H A A H },
-		{ E E E E E E E },
+		{ A A A H A H H E },
+		{ H H H A U H A E },
+		{ A A A H A A H E },
+		{ E E E E E E E E },
 	},
-	.spawn = { 3, 3, 3 },
+	.spawn = { 3, 1, 3 },
 };
 #undef E
+#undef A
 #undef H
 #undef U
 
@@ -55,6 +56,9 @@ worldObjIter(int (*visit)(WorldObject const*, void*), void *data)
 
 	for (x = 0; x < WORLD_MAX_X; x++) {
 		ob.pos.x = x;
+
+		if (sMap.objs[0][x] == WORLD_BLK_EMPTY)
+			break;
 
 		for (y = 0; y < WORLD_MAX_Y; y++) {
 			ob.pos.y = y;

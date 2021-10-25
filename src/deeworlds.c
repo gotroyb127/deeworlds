@@ -8,9 +8,10 @@
 #include "world.h"
 #include "input.h"
 
+#include "deeworldsConfig.h"
+
 /* static variables */
 static GLFWwindow *sWin;
-static char const *sWinTitle = "deeworlds";
 
 /* static function declerations */
 static void handleErr(int err, char const *desc);
@@ -104,7 +105,7 @@ initWin(void)
 
 	glfwMakeContextCurrent(sWin);
 	gladLoadGL(glfwGetProcAddress);
-	glfwSwapInterval(1); /* 1 means vsync */
+	glfwSwapInterval(sConfig.vsync);
 
 	glfwSetFramebufferSizeCallback(sWin, &handleFrambufferResize);
 	glfwSetWindowRefreshCallback(sWin, &handleNeedRefresh);

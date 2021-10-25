@@ -1,0 +1,13 @@
+#version 330 core
+
+smooth in vec2 smTexPos;
+
+out vec4 outCol;
+
+uniform sampler2D currTex;
+
+void
+main(void)
+{
+	outCol = texture(currTex, smTexPos);
+}
