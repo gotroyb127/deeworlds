@@ -1,16 +1,15 @@
 .redo/
 /obj/
+.dep.*
 
 /make.mode
-/*.obj.list
+/*.objs
+/*.srcs
 /*.compile
 /*.link
 /deeworlds
+*.shdStr
 
 /all
 /clean
 /clean-obj
-
-.dep.*
-
-*.shaderStr

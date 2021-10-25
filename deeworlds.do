@@ -1,12 +1,15 @@
 #!/bin/sh
 
-[ ! -e make.mode ] &&
-	echo debug > make.mode
-mode=$(cat make.mode)
+modef=make.mode
+[ ! -e $modef ] &&
+	echo debug > $modef
+mode=$(cat $modef)
+link=$mode.link
+objsf=$2.$mode.objs
 
 echo "mode: $mode" >&2
 
-redo-ifchange make.mode $mode.link $mode.obj.list
-redo-ifchange $(cat $mode.obj.list)
+redo-ifchange $modef $link $objsf
+redo-ifchange $(cat $objsf)
 
-./$mode.link -o $3 $(cat $mode.obj.list)
+./$link -o $3 $(cat $objsf)

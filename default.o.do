@@ -1,16 +1,20 @@
 #!/bin/sh
 
-set -- "$1" "src/${2#obj/*/}" "$3"
+set -- $1 src/${2#obj/*/} $3
+
+srcsf=all.srcs
+mode=${1#obj/}
+mode=${mode%%/*}
+compile=$mode.compile
 
 getDeps() {
 	awk "/^${1##*/}/"' {
 		for (i = 1; i <= NF; i++)
 			print "src/" $i
 		exit
-	}' src.list
+	}' $2
 }
 
-mode=$(cat make.mode)
-redo-ifchange $mode.compile $(getDeps $2.c)
+redo-ifchange $compile $(getDeps $2.c $srcsf)
 
-./$mode.compile -c $2.c -o $3
+./$compile -c $2.c -o $3

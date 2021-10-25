@@ -2,7 +2,7 @@
 
 redo-ifchange config.sh
 
-mode=$(cat make.mode)
+mode=$2
 . ./config.sh
 
 cat << EOF > $3

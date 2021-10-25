@@ -2,7 +2,12 @@
 
 while read mode
 do
-	[ ! -e $mode.obj.list ] &&
-		continue
-	rm -f $(cat $mode.obj.list) >&2
-done < modes.list
+	while read exe
+	do
+		objs=$exe.$mode.objs
+		printf 'objs: %s\n' "$objs" >&2
+		[ ! -e $objs ] &&
+			continue
+		rm -f $(cat $objs)
+	done < exes
+done < modes

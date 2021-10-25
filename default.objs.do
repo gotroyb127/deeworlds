@@ -1,10 +1,11 @@
 #!/bin/sh
 
-redo-ifchange src.list
+mode=${2##*.}
+srcsf=${2%.*}.srcs
 
-mode=$(cat make.mode)
+redo-ifchange $srcsf
 
 while read f deps
 do
 	printf '%s\n' "obj/$mode/${f%.c}.o"
-done < src.list
+done < $srcsf

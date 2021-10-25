@@ -6,8 +6,9 @@ Building:
 	'redo' is used to handle the building but requires a POSIX environment.
 	See 'https://redo.readthedocs.io/en/latest/', 'https://github.com/apenwarr/redo',
 	'http://www.goredo.cypherpunks.ru/', 'https://github.com/leahneukirchen/redo-c'.
+	Currently, I would recommended goredo.
 
-	Also you will need the GLFW headers and a compiled library
+	Also you'll need the GLFW headers and a compiled library
 	to link to.
 
 	There are two modes of building: debug and optimized.
@@ -27,8 +28,9 @@ Building:
 
 Configuration:
 	'config.sh' contains the flags that are passed to the compiler and linker.
-	You can adjust them to fit your needs.
+	You can adjust them to fit your needs. See also:
 	'src/inputConfig.h' contains actions to be taken at given input.
+	'src/deeworldsConfig.h'
 
 About the LICENSE:
 	As far as I am concerned, I'd like to use a public domain licence,
@@ -42,7 +44,7 @@ Coding style:
 	Unless otherwise nesseccary, (e.g. anonymous struct/unions, etc...)
 	we'd rather stick to C99, otherwise we may use certain features of C11.
 	Most pricniples are inpsired from 'https://suckless.org/coding_style/'.
-	In addition, static variables are prefixed with 's', globals with 'g',
+	In addition, static variables are prefixed with 's', global with 'g',
 	static functions have their prototype at the beginning of the file and
 	non-static functions follow static functions' implementatations.
 	You can also use the surrounding code for reference.

@@ -21,7 +21,7 @@ case $mode in
 	ldflags_extra=
 ;;
 (*)
-	echo 'unknown mode (or none given)' >&2
+	printf '%s\n' "unknown mode $mode (or none given)" >&2
 	exit 1
 ;;
 esac
