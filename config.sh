@@ -12,12 +12,12 @@ ldflags='-lglfw -ldl -lm'
 
 case $mode in
 (debug)
-	cflags_extra='-Werror -g -Og'
+	cflags_extra='-Werror -g -O0'
 #	cflags_extra="$cflags_extra -Wextra"
 	ldflags_extra=
 ;;
 (optimized)
-	cflags_extra='-O2'
+	cflags_extra='-O3'
 	ldflags_extra=
 ;;
 (*)

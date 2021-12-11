@@ -10,62 +10,61 @@
 #include "drawLoad.h"
 #include "vecmath.h"
 #include "world.h"
-#include "worldProtected.h"
 
-typedef struct {
-	vec3 pos;
-	vec2 texPos;
-} VertexData;
+struct vertexData {
+	struct vec3 pos;
+	struct vec2 texPos;
+};
 
-typedef struct {
+struct blkTex {
 	const char *texFnm;
 	GLuint tex;
-} BlockTexture;
+};
 
-typedef struct {
-	mat4 mat;
+struct matrixUnf {
+	struct mat4 m;
 	GLuint unf;
-} MatrixUniform;
+};
 
 /* static funcitions declerations */
 static int initProg(void);
 static int initBufs(void);
 static int initTexs(void);
-static int drawObject(WorldObject const *wob, void *data);
+static int drawObj(const struct worldObj *wob, void *arg);
 
 /* static variables */
-static char const *sVertShadSrc = {
+static const char *sVertShadSrc = {
 	#include "shaders/vert.shdStr"
 };
 
-static char const *sFragShadSrc = {
+static const char *sFragShadSrc = {
 	#include "shaders/frag.shdStr"
 };
 
-static VertexData const sVertData[] = {
+static const struct vertexData sVertData[] = {
 	/*  pos                texPos  */
-	{ { 0.f, 0.f, 0.f }, { 0.f, 0.f } },
-	{ { 0.f, 1.f, 0.f }, { 0.f, 1.f } },
-	{ { 1.f, 1.f, 0.f }, { 1.f, 1.f } },
-	{ { 1.f, 0.f, 0.f }, { 1.f, 0.f } },
-	{ { 1.f, 0.f, 1.f }, { -2.f, 0.f } },
-	{ { 0.f, 0.f, 1.f }, { -1.f, 0.f } },
-	{ { 0.f, 1.f, 1.f }, { -1.f, 1.f } },
-	{ { 1.f, 1.f, 1.f }, { -2.f, 1.f } },
+	{{0.f, 0.f, 0.f}, {0.f, 0.f}},
+	{{0.f, 1.f, 0.f}, {0.f, 1.f}},
+	{{1.f, 1.f, 0.f}, {1.f, 1.f}},
+	{{1.f, 0.f, 0.f}, {1.f, 0.f}},
+	{{1.f, 0.f, 1.f}, {-2.f, 0.f}},
+	{{0.f, 0.f, 1.f}, {-1.f, 0.f}},
+	{{0.f, 1.f, 1.f}, {-1.f, 1.f}},
+	{{1.f, 1.f, 1.f}, {-2.f, 1.f}},
 
-	{ { 1.f, 1.f, 0.f }, { -3.f, 1.f } },
-	{ { 1.f, 0.f, 0.f }, { -3.f, 0.f } },
+	{{1.f, 1.f, 0.f}, { -3.f, 1.f}},
+	{{1.f, 0.f, 0.f}, { -3.f, 0.f}},
 
-	{ { 0.f, 1.f, 1.f }, { 0.f, 2.f } },
-	{ { 1.f, 1.f, 1.f }, { 1.f, 1.f } },
+	{{0.f, 1.f, 1.f}, {0.f, 2.f}},
+	{{1.f, 1.f, 1.f}, {1.f, 1.f}},
 
-	{ { 1.f, 0.f, 1.f }, { 1.f, 0.f } },
-	{ { 0.f, 0.f, 1.f }, { 0.f, 0.f } },
-	{ { 0.f, 0.f, 0.f }, { 0.f, 1.f } },
-	{ { 1.f, 0.f, 0.f }, { 1.f, 1.f } },
+	{{1.f, 0.f, 1.f}, {1.f, 0.f}},
+	{{0.f, 0.f, 1.f}, {0.f, 0.f}},
+	{{0.f, 0.f, 0.f}, {0.f, 1.f}},
+	{{1.f, 0.f, 0.f}, {1.f, 1.f}},
 };
 
-static GLushort const sIdxArr[] = {
+static const GLushort sIdxArr[] = {
 	 0,  1,  3,   3,  1, 2,
 	 0,  5,  6,   0,  6, 1,
 	 5,  4,  7,   5,  7, 6,
@@ -74,16 +73,14 @@ static GLushort const sIdxArr[] = {
 	13, 14, 12,  12, 14, 15,
 };
 
-static MatrixUniform sModelToWorld, sWorldToView;
+static struct matrixUnf sMdlToWld, sWldToView;
 static GLuint sProg, sVao, sVertBuf, sIdxBuf;
 static GLuint sCurrTexUnf;
-static float sAspectRatio = 1.f;
-static BlockTexture sBlkTexs[WORLD_BLK_LAST] = {
-	[WORLD_BLK_AIR]    = {.texFnm = NULL},
-//	[WORLD_BLK_HKABLE] = {.texFnm = "data/texs/clown.ff"},
-//	[WORLD_BLK_UHABLE] = {.texFnm = "data/texs/clown.ff"},
-	[WORLD_BLK_HKABLE] = {.texFnm = "data/texs/blk_hkable.ff"},
-	[WORLD_BLK_UHABLE] = {.texFnm = "data/texs/blk_uhable.ff"},
+static float sAspRatio = 1.f;
+static struct blkTex sBlkTexs[WLD_BLK_LAST] = {
+	[WLD_BLK_AIR]    = {.texFnm = NULL},
+	[WLD_BLK_HKABLE] = {.texFnm = "data/texs/blk_hkable.ff"},
+	[WLD_BLK_UHABLE] = {.texFnm = "data/texs/blk_uhable.ff"},
 };
 
 /* static function implementations */
@@ -95,24 +92,16 @@ initProg(void)
 
 	if (!compileShd(&shds[0], GL_VERTEX_SHADER, sVertShadSrc)
 	|| !compileShd(&shds[1], GL_FRAGMENT_SHADER, sFragShadSrc)
-	|| !linkProg(&sProg, NELEM(shds), shds))
+	|| !linkProg(&sProg, NELM(shds), shds))
 		return 0;
 
-	for (i = 0; i < NELEM(shds); i++)
+	for (i = 0; i < NELM(shds); i++)
 		glDeleteShader(shds[i]);
 
-	sWorldToView.unf = glGetUniformLocation(sProg, "worldToView");
-	sModelToWorld.unf = glGetUniformLocation(sProg, "modelToWorld");
+	sWldToView.unf = glGetUniformLocation(sProg, "worldToView");
+	sMdlToWld.unf = glGetUniformLocation(sProg, "modelToWorld");
 
 	sCurrTexUnf = glGetUniformLocation(sProg, "currTex");
-
-	sModelToWorld.mat = mat4_identity;
-
-	glUseProgram(sProg);
-	glUniformMatrix4fv(sWorldToView.unf, 1, GL_FALSE, &sWorldToView.mat.raw[0][0]);
-	glUniformMatrix4fv(sModelToWorld.unf, 1, GL_FALSE, &sModelToWorld.mat.raw[0][0]);
-	glUniform1i(sCurrTexUnf, 0);
-	glUseProgram(0);
 
 	return 1;
 }
@@ -122,7 +111,7 @@ initBufs(void)
 {
 	GLuint bufs[2]; /* vert, idx buffers */
 
-	glGenBuffers(NELEM(bufs), bufs);
+	glGenBuffers(NELM(bufs), bufs);
 	glGenVertexArrays(1, &sVao);
 
 	glBindVertexArray(sVao);
@@ -148,7 +137,7 @@ initBufs(void)
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,
 		sizeof sVertData[0], (void *)0);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE,
-		sizeof sVertData[0], (void *)offsetof(VertexData, texPos));
+		sizeof sVertData[0], (void *)offsetof(struct vertexData, texPos));
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
@@ -159,32 +148,32 @@ initBufs(void)
 int
 initTexs(void)
 {
-	char const *errmsg;
-	char *imgData;
+	struct blkTex *bt;
+	void *imgData;
 	uint32_t width, height;
 	unsigned int i;
-	BlockTexture *bt;
+	const char *errmsg;
 
-	for (i = 0; i < NELEM(sBlkTexs); i++) {
-		bt = &sBlkTexs[i];
-
-		if (!bt->texFnm)
+	for (i = 0; i < NELM(sBlkTexs); i++) {
+		if (!(bt = &sBlkTexs[i])->texFnm)
 			continue;
-
-		imgData = drawLoadImg(bt->texFnm, &width, &height, &errmsg);
-		if (!imgData) {
-			eprintf("fatal: drawLoadImg(%s): %s\n", bt->texFnm, errmsg);
+		if (!(imgData = drawLoadImg(bt->texFnm, &width,
+			&height, &errmsg))
+		) {
+			eprintf("fatal: drawLoadImg(%s): %s\n",
+				bt->texFnm, errmsg);
 			return 0;
-		} else if (errmsg) {
+		} else if (errmsg)
 			eprintf("drawLoadImg(%s): %s\n", bt->texFnm, errmsg);
-		}
 
 		glGenTextures(1, &bt->tex);
 		glBindTexture(GL_TEXTURE_2D, bt->tex);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+			GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+			GL_LINEAR);
 
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0,
 			GL_RGBA, GL_UNSIGNED_SHORT, imgData);
@@ -199,24 +188,22 @@ initTexs(void)
 }
 
 int
-drawObject(WorldObject const *wob, void *data)
+drawObj(const struct worldObj *wob, void *arg)
 {
-	BlockTexture const *bt;
-	vec3 pos;
+	const struct blkTex *bt;
+	struct vec3 p;
 
-	bt = &sBlkTexs[wob->type];
-	if (!bt->texFnm)
+	if (!(bt = &sBlkTexs[wob->type])->texFnm)
 		return 1;
 
 	glBindTexture(GL_TEXTURE_2D, bt->tex);
 
-	vec3_negate(&pos, &wob->pos);
-	mat4_translation_mat(&sModelToWorld.mat, &pos);
+	mat4_trn_mat(&sMdlToWld.m, vec3_neg(&p, &wob->pos));
 
-	glUniformMatrix4fv(sModelToWorld.unf, 1, GL_FALSE,
-		&sModelToWorld.mat.raw[0][0]);
+	glUniformMatrix4fv(sMdlToWld.unf, 1, GL_FALSE,
+		&sMdlToWld.m.m[0][0]);
 
-	glDrawElements(GL_TRIANGLES, NELEM(sIdxArr), GL_UNSIGNED_SHORT, 0);
+	glDrawElements(GL_TRIANGLES, NELM(sIdxArr), GL_UNSIGNED_SHORT, 0);
 
 	return 1;
 }
@@ -225,10 +212,7 @@ drawObject(WorldObject const *wob, void *data)
 int
 drawInit(void)
 {
-	if (!initProg()
-	|| !initBufs()
-	|| !initTexs()
-	)
+	if (!initProg() || !initBufs() || !initTexs())
 		return 0;
 
 	glEnable(GL_DEPTH_TEST);
@@ -241,7 +225,6 @@ drawInit(void)
 	glFrontFace(GL_CW);
 
 	glClearColor(0.0f, 0.15f, 0.3f, 0.0f);
-//	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
 	return 1;
 }
@@ -249,12 +232,16 @@ drawInit(void)
 void
 drawSetAspectRatio(float asp)
 {
-	sAspectRatio = asp;
+	sAspRatio = asp;
 }
 
 void
 drawFrame(void)
 {
+	struct mat4 *m;
+	struct vec3 eyePos, eyeDir;
+	float yFov, zNear, zFar;
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glUseProgram(sProg);
@@ -262,41 +249,25 @@ drawFrame(void)
 	glBindBuffer(GL_ARRAY_BUFFER, sVertBuf);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sIdxBuf);
 
-	mat4 *mat;
-	vec3 eyePos, eyeDir;
-	float yFov, aspectRatio, zNear, zFar;
-
 	yFov = M_DEG_TO_RAD(110.f);
-	aspectRatio = sAspectRatio;
-	zNear = 0.25f;
+	zNear = 0.025f;
 	zFar = 100.f;
 
-	worldGetEyePos(&eyePos, &eyeDir);
+	wldGetEye(&eyePos, &eyeDir);
 
-	mat = &sWorldToView.mat;
-	mat4_perspective(mat, yFov, aspectRatio, zNear, zFar);
+	m = &sWldToView.m;
+	mat4_persp(m, yFov, sAspRatio, zNear, zFar);
 #if 1
-	mat4_apply_cam(mat, mat, &eyePos, &eyeDir);
+	mat4_cam_apply(m, m, &eyePos, &eyeDir);
 #else
-	mat4_rot_z(mat, mat, eyeDir.z);
-	mat4_rot_x(mat, mat, eyeDir.x);
-	mat4_rot_y(mat, mat, eyeDir.y);
-	mat4_translate(mat, mat, &eyePos);
+	mat4_rotz(m, m, eyeDir.z);
+	mat4_rotx(m, m, eyeDir.x);
+	mat4_roty(m, m, eyeDir.y);
+	mat4_trlt(m, m, &eyePos);
 #endif
-	glUniformMatrix4fv(sWorldToView.unf, 1, GL_FALSE, &sWorldToView.mat.raw[0][0]);
-#if 0
-	static unsigned int n;
-	if (n++)
-		printf("\033[4A\033[K");
-	MAT4_PRINT(sWorldToView.mat);
-#elif 0
-	static unsigned int n;
-	if (n++)
-		printf("\033[2A\033[K");
-	VEC3_PRINT(eyePos);
-	VEC3_PRINT(eyeDir);
-#endif
-	worldObjIter(&drawObject, NULL);
+	glUniformMatrix4fv(sWldToView.unf, 1, GL_FALSE,
+		&sWldToView.m.m[0][0]);
+	wldObjIter(&drawObj, NULL);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);

@@ -1,5 +1,4 @@
-NPROC = $$(nproc)
-REDO = REDO_STDOUT=1 redo -j ${NPROC}
+REDO = redo
 
 all:
 	${REDO} $@

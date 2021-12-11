@@ -1,39 +1,44 @@
 /* inputConfig.h */
 
-#define ACTION(ACT) playerAction##ACT
+#define ACTN(A) plrActn##A
+#define EVT(T)  GLFW_##T
+#define KEY(K)  GLFW_KEY_##K
+#define MOD(M)  GLFW_MOD_##M
+#define MBT(B)  GLFW_MOUSE_BUTTON_##B
 
-static ActionKey const sActionsKey[] = {
-	/* key            mods              action        function                argument */
-	{ GLFW_KEY_E,     0,                GLFW_PRESS,   ACTION(AddAccel), {.v3 = { 0.f, 0.f, 1.f }} },
-	{ GLFW_KEY_E,     0,                GLFW_RELEASE, ACTION(SubAccel), {.v3 = { 0.f, 0.f, 1.f }} },
+static const struct actionKey sActnKeys[] = {
+	/* key        mods          event type    function      argument */
+	{ KEY(Q),     0,            EVT(PRESS),   ACTN(AclSet), {.v3 = {0}} },
 
-	{ GLFW_KEY_D,     0,                GLFW_PRESS,   ACTION(AddAccel), {.v3 = { 0.f, 0.f, -1.f }} },
-	{ GLFW_KEY_D,     0,                GLFW_RELEASE, ACTION(SubAccel), {.v3 = { 0.f, 0.f, -1.f }} },
+	{ KEY(E),     0,            EVT(PRESS),   ACTN(AclAdd), {.v3 = {.z =  1.f}} },
+	{ KEY(E),     0,            EVT(RELEASE), ACTN(AclAdd), {.v3 = {.z = -1.f}} },
 
-	{ GLFW_KEY_S,     0,                GLFW_PRESS,   ACTION(AddAccel), {.v3 = { -1.f, 0.f, 0.f }} },
-	{ GLFW_KEY_S,     0,                GLFW_RELEASE, ACTION(SubAccel), {.v3 = { -1.f, 0.f, 0.f }} },
+	{ KEY(D),     0,            EVT(PRESS),   ACTN(AclAdd), {.v3 = {.z = -1.f}} },
+	{ KEY(D),     0,            EVT(RELEASE), ACTN(AclAdd), {.v3 = {.z =  1.f}} },
 
-	{ GLFW_KEY_F,     0,                GLFW_PRESS,   ACTION(AddAccel), {.v3 = { 1.f, 0.f, 0.f }} },
-	{ GLFW_KEY_F,     0,                GLFW_RELEASE, ACTION(SubAccel), {.v3 = { 1.f, 0.f, 0.f }} },
+	{ KEY(S),     0,            EVT(PRESS),   ACTN(AclAdd), {.v3 = {.x = -1.f}} },
+	{ KEY(S),     0,            EVT(RELEASE), ACTN(AclAdd), {.v3 = {.x = +1.f}} },
 
-	{ GLFW_KEY_SPACE, 0,                GLFW_PRESS,   ACTION(AddAccel), {.v3 = { 0.f, 1.f, 0.f }} },
-	{ GLFW_KEY_SPACE, 0,                GLFW_RELEASE, ACTION(SubAccel), {.v3 = { 0.f, 1.f, 0.f }} },
+	{ KEY(F),     0,            EVT(PRESS),   ACTN(AclAdd), {.v3 = {.x =  1.f}} },
+	{ KEY(F),     0,            EVT(RELEASE), ACTN(AclAdd), {.v3 = {.x = -1.f}} },
 
-	{ GLFW_KEY_SPACE, GLFW_MOD_CONTROL, GLFW_PRESS,   ACTION(AddAccel), {.v3 = { 0.f, -1.f, 0.f }} },
-	{ GLFW_KEY_SPACE, GLFW_MOD_CONTROL, GLFW_RELEASE, ACTION(SubAccel), {.v3 = { 0.f, -1.f, 0.f }} },
+	{ KEY(SPACE), 0,            EVT(PRESS),   ACTN(AclAdd), {.v3 = {.y = 1.f}} },
+
+	{ KEY(SPACE), MOD(SHIFT),   EVT(PRESS),   ACTN(AclAdd), {.v3 = {.y = 0.7f}} },
+	{ KEY(SPACE), MOD(CONTROL), EVT(PRESS),   ACTN(AclAdd), {.v3 = {.y = 0.3f}} },
 };
 
-float const radsPerPixel = 1 / 450.f;
-
-static ActionMouseButton const sActionsMouseButton[] = {
-	/* button                  mods  action        function  argument */
-	{ GLFW_MOUSE_BUTTON_LEFT,  0,    GLFW_PRESS,   ACTION(RotCam), {.v3 = { 0.f,  M_PI_2, 0.f }} },
-	{ GLFW_MOUSE_BUTTON_LEFT,  0,    GLFW_RELEASE, ACTION(RotCam), {.v3 = { 0.f, -M_PI_2, 0.f }} },
-	{ GLFW_MOUSE_BUTTON_RIGHT, 0,    GLFW_PRESS,   ACTION(RotCam), {.v3 = { 0.f, -M_PI_2, 0.f }} },
-	{ GLFW_MOUSE_BUTTON_RIGHT, 0,    GLFW_RELEASE, ACTION(RotCam), {.v3 = { 0.f,  M_PI_2, 0.f }} },
+static const struct actionMsBtn sActnMsBtns[] = {
+	/* button   mods event type   function     argument */
+	{ MBT(LEFT),  0, EVT(PRESS),   ACTN(CamRot), {.v3 = {0.f,  M_PI_2, 0.f}} },
+	{ MBT(LEFT),  0, EVT(RELEASE), ACTN(CamRot), {.v3 = {0.f, -M_PI_2, 0.f}} },
+	{ MBT(RIGHT), 0, EVT(PRESS),   ACTN(CamRot), {.v3 = {0.f, -M_PI_2, 0.f}} },
+	{ MBT(RIGHT), 0, EVT(RELEASE), ACTN(CamRot), {.v3 = {0.f,  M_PI_2, 0.f}} },
 };
 
-static ActionCursor const sActionsCursor[] = {
+const float radsppxl = 1 / 450.f; /* radians per pixel */
+
+static const struct actionCurs sActnCurs[] = {
 	/* function       argument */
-	{ ACTION(RotCam), {{ 0.f, -radsPerPixel }, { -radsPerPixel, 0.f }, {0}} },
+	{ ACTN(CamRot), {{0.f, -radsppxl}, {-radsppxl, 0.f}, {0}} },
 };

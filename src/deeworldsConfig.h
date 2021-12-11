@@ -1,6 +1,6 @@
 /* deeworldsConfig.h */
 
-static char const *sWinTitle = "deeworlds";
+static const char *sWinTitle = "deeworlds";
 
 static const struct {
 	int vsync; /* 1 for vsync, 0 otherwise */

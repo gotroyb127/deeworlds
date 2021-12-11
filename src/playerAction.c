@@ -1,32 +1,27 @@
 #include <GLFW/glfw3.h>
 
+#include "util.h"
 #include "vecmath.h"
 #include "world.h"
 #include "worldParams.h"
 #include "player.h"
 #include "playerAction.h"
 
-/* non-static functions */
+/* non-static function implementations */
 void
-playerActionSetAccel(ActionArg const *arg)
+plrActnAclSet(const union actionArg *arg)
 {
-	playerSetAccel(&arg->v3);
+	plrCtlAclSet(wldCurrPlr(), &arg->v3);
 }
 
 void
-playerActionAddAccel(ActionArg const *arg)
+plrActnAclAdd(const union actionArg *arg)
 {
-	playerAddAccel(&arg->v3);
+	plrCtlAclAdd(wldCurrPlr(), &arg->v3);
 }
 
 void
-playerActionSubAccel(ActionArg const *arg)
+plrActnCamRot(const union actionArg *arg)
 {
-	playerSubAccel(&arg->v3);
-}
-
-void
-playerActionRotCam(ActionArg const *arg)
-{
-	playerRotCam(&arg->v3);
+	plrCtlCamRot(wldCurrPlr(), &arg->v3);
 }

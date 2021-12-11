@@ -2,6 +2,7 @@
 #include <glad/gl.h>
 
 #include "util.h"
+#include "drawUtil.h"
 
 int
 compileShd(GLuint *retShd, GLenum shdType, char const *src)

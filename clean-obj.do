@@ -5,9 +5,8 @@ do
 	while read exe
 	do
 		objs=$exe.$mode.objs
-		printf 'objs: %s\n' "$objs" >&2
 		[ ! -e $objs ] &&
 			continue
-		rm -f $(cat $objs)
+		rm -f $(cat $objs) $objs
 	done < exes
 done < modes

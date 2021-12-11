@@ -1,5 +1,5 @@
 /* input.h */
 
-void inputKey(int key, int mods, int action);
-void inputMouseButton(int button, int mods, int action);
-void inputCursorPos(double xPos, double yPos);
+void inputKey(FPARS(int, key, mods, actn));
+void inputMsBtn(FPARS(int, btn, mods, actn));
+void inputCursMv(FPARS(double, x, y));

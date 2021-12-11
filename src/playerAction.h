@@ -1,38 +1,29 @@
 /* playerAction.h */
 
-typedef union {
-	vec3 v3;
+union actionArg {
+	struct vec3 v3;
 	/* maybe more fields be added if needed */
-} ActionArg;
+};
 
-typedef void (*ActionFunc)(ActionArg const*);
+typedef void (*ActionFunc)(const union actionArg *);
 
-typedef struct {
-	int key;
-	int mods;
-	int action;
+struct actionKey {
+	int key, mods, actn;
 	ActionFunc func;
-	ActionArg arg;
-} ActionKey;
+	union actionArg arg;
+};
 
-typedef struct {
-	int button;
-	int mods;
-	int action;
+struct actionMsBtn {
+	int btn, mods, actn;
 	ActionFunc func;
-	ActionArg arg;
-} ActionMouseButton;
+	union actionArg arg;
+};
 
-typedef struct {
+struct actionCurs {
 	ActionFunc func;
-	vec2 v2s[3];
-} ActionCursor;
+	struct vec2 v2s[3];
+};
 
-/* sets accel on each axis relative to player's position
-   the following functions expect v3 */
-void playerActionSetAccel(ActionArg const *arg);
-void playerActionAddAccel(ActionArg const *arg);
-void playerActionSubAccel(ActionArg const *arg);
-
-/* adjust the player camera, expects v3 */
-void playerActionRotCam(ActionArg const *arg);
+void plrActnAclSet(const union actionArg *arg);
+void plrActnAclAdd(const union actionArg *arg);
+void plrActnCamRot(const union actionArg *arg);

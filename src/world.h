@@ -1,5 +1,22 @@
 /* world.h */
 
-void worldInit(void);
+enum {
+	WLD_BLK_NONE = -1,
+	WLD_BLK_AIR,
+	WLD_BLK_HKABLE,
+	WLD_BLK_UHABLE,
+	WLD_BLK_LAST,
+};
+
+struct worldObj {
+	int type;
+	struct vec3 pos;
+};
+
+struct player *wldCurrPlr(void);
+void wldGetEye(FPARS(struct vec3, *eyePos, *eyeDir));
+void wldObjIter(int (*visit)(const struct worldObj *, void *), void *arg);
+
+void wldInit(void);
 /* returns whether the screen needs to be redrawn */
-int worldUpdate(double sysTime);
+int wldUpdate(double sysTime);

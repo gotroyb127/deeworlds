@@ -1,31 +1,31 @@
 /* worldParams.h */
 
-typedef struct {
+struct motionPars {
 	float accel;
 	float maxSpeed;
 	float friction;
 	float jumpVel;
 	float gravity;
-} MotionParams;
+};
 
-typedef struct {
-	float length;
-	float throwVel;
+struct hookPars {
+	double duration;
 	float dragAccel;
 	float dragSpeed;
-	double duration;
-} HookParams;
+	float throwVel;
+	float length;
+};
 
-typedef struct {
-	float strength;
+struct hammerPars {
 	double fireDelayDef;
 	double fireDelayHit;
-} HammerParams;
+	float strength;
+};
 
-typedef struct {
-	float reachDist;
+struct laserPars {
 	double fireDelay;
-	int bounceNum;
 	double bounceDelay;
+	float reachDist;
 	float bounceCost;
-} LaserParams;
+	int bounceNum;
+};

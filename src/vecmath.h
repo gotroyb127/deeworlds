@@ -6,16 +6,16 @@
 #define M_DEG_TO_RAD(D) ((D)/ 180.f * M_PI)
 #define M_SQR(X)        ((X) * (X))
 
-#define VEC2_COMP_IDX(v, i) (*(float*[]){ &(v).x, &(v).y }[i])
-#define VEC3_COMP_IDX(v, i) (*(float*[]){ &(v).x, &(v).y, &(v).z }[i])
+#define VEC_RAW(V)    (&(V)->x)
+
 #define MAT3_INIT( \
 	a00, a01, a02, \
 	a10, a11, a12, \
 	a20, a21, a22, unused) \
 	{{ \
-		{ a00, a10, a20, }, \
-		{ a01, a11, a21, }, \
-		{ a02, a12, a22, }, \
+		{ a00, a10, a20 }, \
+		{ a01, a11, a21 }, \
+		{ a02, a12, a22 }, \
 	}}
 #define MAT4_INIT( \
 	a00, a01, a02, a03, \
@@ -29,98 +29,99 @@
 		{ a03, a13, a23, a33 }, \
 	}}
 
-#if 0 /* just for reference */
-#define VEC2_PRINT(v) printf("%s: (%f, %f)\n", #v, (v).x, (v).y).z)
-#define VEC3_PRINT(v) printf("%s: (%f, %f, %f)\n", #v, (v).x, (v).y, (v).z)
-#define MAT3_PRINT(m) \
-	do { \
-		for (unsigned int r = 0; r < 3; r++) { \
-			printf("%s: ", #m); \
-			for (unsigned int c = 0; c < 3; c++) \
-				printf("%f", (m).raw[c][r]); \
-			printf("\n"); \
-		} \
-	} while (0)
-#define MAT4_PRINT(m) \
-	do { \
-		for (unsigned int r = 0; r < 4; r++) { \
-			printf("%s: ", #m); \
-			for (unsigned int c = 0; c < 4; c++) \
-				printf("%f", (m).raw[c][r]); \
-			printf("\n"); \
-		} \
-	} while (0)
-#endif
-
-typedef struct {
+struct ivec2 {
 	int x, y;
-} ivec2;
+};
 
-typedef struct {
+struct ivec3 {
 	int x, y, z;
-} ivec3;
+};
 
-typedef struct {
+struct vec2 {
 	float x, y;
-} vec2;
+};
 
-typedef struct {
+struct vec3 {
 	float x, y, z;
-} vec3;
+};
 
-typedef struct {
-	float raw[3][3];
-} mat3;
+struct mat3 {
+	float m[3][3];
+};
 
-typedef struct {
-	float raw[4][4];
-} mat4;
+struct mat4 {
+	float m[4][4];
+};
+
+/* ivec3 */
+struct vec3 *ivec3_to_vec3(struct vec3 *d, const struct ivec3 *v);
+struct ivec3 *ivec3_set(struct ivec3 *d, FPARS(int, x, y, z));
+struct ivec3 *vec3_to_ivec3(struct ivec3 *d, const struct vec3 *v);
 
 /* vec2 */
-extern vec2 const vec2_zero;
-void vec2_add(vec2 *ret, vec2 const *v1, vec2 const *v2);
-void vec2_sub(vec2 *ret, vec2 const *v1, vec2 const *v2);
-void vec2_negate(vec2 *ret, vec2 const *vec);
-void vec2_scale(vec2 *ret, vec2 const *vec, float f);
-float vec2_dot(vec2 const *v1, vec2 const *v2);
-float vec2_norm2(vec2 const *vec);
-float vec2_norm(vec2 const *vec);
+extern const struct vec2 vec2_zero;
+
+struct vec2 *vec2_set(struct vec2 *d, FPARS(float, x, y));
+struct vec2 *vec2_cpy(struct vec2 *d, const struct vec2 *vec);
+struct vec2 *vec2_add(struct vec2 *d, FPARS(const struct vec2, *a, *b));
+struct vec2 *vec2_sub(struct vec2 *d, FPARS(const struct vec2, *a, *b));
+struct vec2 *vec2_neg(struct vec2 *d, const struct vec2 *v);
+struct vec2 *vec2_scal(struct vec2 *d, const struct vec2 *v, float f);
+float vec2_dot(FPARS(const struct vec2, *a, *b));
+float vec2_norm2(const struct vec2 *v);
+float vec2_norm(const struct vec2 *v);
+int vec2_iseq(FPARS(const struct vec2, *a, *b));
 
 /* vec3 */
-extern vec3 const vec3_zero;
-void vec3_add(vec3 *ret, vec3 const *v1, vec3 const *v2);
-void vec3_sub(vec3 *ret, vec3 const *v1, vec3 const *v2);
-void vec3_negate(vec3 *ret, vec3 const *vec);
-void vec3_scale(vec3 *ret, vec3 const *vec, float f);
-void vec3_normalize(vec3 *ret, vec3 const *vec);
-float vec3_dot(vec3 const *v1, vec3 const *v2);
-float vec3_norm2(vec3 const *vec);
-float vec3_norm(vec3 const *vec);
+extern const struct vec3 vec3_zero;
+
+struct vec3 *vec3_set(struct vec3 *d, FPARS(float, x, y, z));
+struct vec3 *vec3_cpy(struct vec3 *d, const struct vec3 *v);
+struct vec3 *vec3_add(struct vec3 *d, FPARS(const struct vec3, *a, *b));
+struct vec3 *vec3_addi(struct vec3 *a, const struct vec3 *b);
+struct vec3 *vec3_sub(struct vec3 *d, FPARS(const struct vec3, *a, *b));
+struct vec3 *vec3_subi(struct vec3 *a, const struct vec3 *b);
+struct vec3 *vec3_neg(struct vec3 *d, const struct vec3 *v);
+struct vec3 *vec3_negi(struct vec3 *v);
+struct vec3 *vec3_scal(struct vec3 *d, const struct vec3 *v, float f);
+struct vec3 *vec3_scali(struct vec3 *v, float f);
+struct vec3 *vec3_scalv(struct vec3 *d, FPARS(const struct vec3, *a, *b));
+struct vec3 *vec3_scalvi(struct vec3 *a, const struct vec3 *b);
+struct vec3 *vec3_normlz(struct vec3 *d, const struct vec3 *v);
+float vec3_dot(FPARS(const struct vec3, *a, *b));
+float vec3_norm2(const struct vec3 *v);
+float vec3_norm(const struct vec3 *v);
+int vec3_iseq(FPARS(const struct vec3, *a, *b));
 
 /* mat3 */
-extern mat3 const mat3_identity;
-void mat3_mul(mat3 *ret, mat3 const *m1, mat3 const *m2);
-void mat3_mul_vec3(vec3 *ret, mat3 const *mat, vec3 const *vec);
-void mat3_rot_x_mat(mat3 *ret, float angl);
-void mat3_rot_y_mat(mat3 *ret, float angl);
-void mat3_rot_z_mat(mat3 *ret, float angl);
-void mat3_rot_x(mat3 *ret, mat3 const *mat, float angl);
-void mat3_rot_y(mat3 *ret, mat3 const *mat, float angl);
-void mat3_rot_z(mat3 *ret, mat3 const *mat, float angl);
-void mat3_to_mat4(mat4 *ret, mat3 const *mat);
+extern const struct mat3 mat3_identity;
+
+struct mat4 *mat3_to_mat4(struct mat4 *d, const struct mat3 *m);
+struct mat3 *mat3_mul(struct mat3 *d, FPARS(const struct mat3, *a, *b));
+struct mat3 *mat3_rotx_mat(struct mat3 *d, float angl);
+struct mat3 *mat3_roty_mat(struct mat3 *d, float angl);
+struct mat3 *mat3_rotz_mat(struct mat3 *d, float angl);
+struct mat3 *mat3_rotx(struct mat3 *d, const struct mat3 *m, float angl);
+struct mat3 *mat3_roty(struct mat3 *d, const struct mat3 *m, float angl);
+struct mat3 *mat3_rotz(struct mat3 *d, const struct mat3 *m, float angl);
+struct vec3 *mat3_mulv(struct vec3 *d, const struct mat3 *m, const struct vec3 *v);
 
 /* mat4 */
-extern mat4 const mat4_identity;
-void mat4_mul(mat4 *ret, mat4 const *m1, mat4 const *m2);
-void mat4_perspective(mat4 *ret, float yFov, float asp, float n, float f);
-void mat4_translation_mat(mat4 *ret, vec3 const *point);
-void mat4_translate(mat4 *ret, mat4 const *mat, vec3 const *point);
-void mat4_camera_mat(mat4 *ret, vec3 const *eyePos, vec3 const *eyeDir);
-void mat4_apply_cam(mat4 *ret, mat4 const *mat, vec3 const *eyePos, vec3 const *eyeDir);
-void mat4_rot_x_mat(mat4 *ret, float angl);
-void mat4_rot_y_mat(mat4 *ret, float angl);
-void mat4_rot_z_mat(mat4 *ret, float angl);
-void mat4_rot_x(mat4 *ret, mat4 const *mat, float angl);
-void mat4_rot_y(mat4 *ret, mat4 const *mat, float angl);
-void mat4_rot_z(mat4 *ret, mat4 const *mat, float angl);
-void mat4_to_mat3(mat3 *ret, mat4 const *mat);
+extern const struct mat4 mat4_identity;
+
+struct mat4 *mat4_mul(struct mat4 *d, FPARS(const struct mat4, *m1, *m2));
+struct mat4 *mat4_persp(struct mat4 *d, FPARS(float, yfov, asp, n, f));
+struct mat4 *mat4_trn_mat(struct mat4 *d, const struct vec3 *p);
+struct mat4 *mat4_trlt(struct mat4 *d, const struct mat4 *m, const struct vec3 *p);
+struct mat4 *mat4_trlti(struct mat4 *d, const struct vec3 *p);
+struct mat4 *mat4_cam_mat(struct mat4 *d, FPARS(const struct vec3, *eyePos, *eyeDir));
+struct mat4 *mat4_cam_apply(struct mat4 *d, const struct mat4 *mat,
+	FPARS(const struct vec3, *eyePos, *eyeDir));
+struct mat4 *mat4_cam_applyi(struct mat4 *d, FPARS(const struct vec3, *eyePos, *eyeDir));
+struct mat4 *mat4_rotx_mat(struct mat4 *d, float angl);
+struct mat4 *mat4_roty_mat(struct mat4 *d, float angl);
+struct mat4 *mat4_rotz_mat(struct mat4 *d, float angl);
+struct mat4 *mat4_rotx(struct mat4 *d, const struct mat4 *m, float angl);
+struct mat4 *mat4_roty(struct mat4 *d, const struct mat4 *m, float angl);
+struct mat4 *mat4_rotz(struct mat4 *d, const struct mat4 *m, float angl);
+struct mat3 *mat4_to_mat3(struct mat3 *d, const struct mat4 *m);

@@ -10,16 +10,18 @@ allsrcs() {
 	deeworlds.c    util.h draw.h world.h input.h deeworldsConfig.h \
 	               glad/include/glad/gl.h
 	draw.c         util.h draw.h drawUtil.h drawLoad.h vecmath.h world.h \
-	               worldProtected.h shaders/vert.shdStr shaders/frag.shdStr \
+	               shaders/vert.shdStr shaders/frag.shdStr \
 	               glad/include/glad/gl.h
-	drawLoad.c     drawLoad.h
+	drawLoad.c     util.h drawLoad.h do.h
 	drawUtil.c     util.h drawUtil.h glad/include/glad/gl.h
-	input.c        util.h vecmath.h world.h playerAction.h input.h inputConfig.h
-	player.c       vecmath.h player.h worldParams.h
-	playerAction.c vecmath.h world.h player.h
-	vecmath.c      vecmath.h
-	world.c        vecmath.h world.h worldProtected.h worldParams.h \
-	               worldParamsConfig.h player.h
+	input.c        util.h vecmath.h world.h playerAction.h input.h \
+	               inputConfig.h do.h
+	player.c       util.h vecmath.h worldParams.h player.h do.h
+	playerAction.c util.h vecmath.h world.h worldParams.h \
+	               player.h playerAction.h
+	vecmath.c      util.h vecmath.h do.h
+	world.c        util.h vecmath.h world.h worldParams.h \
+	               worldConfig.h player.h do.h
 	glad/src/gl.c  glad/include/glad/gl.h
 	EOF
 }

@@ -5,6 +5,7 @@
 
 #include "util.h"
 #include "draw.h"
+#include "vecmath.h"
 #include "world.h"
 #include "input.h"
 
@@ -14,41 +15,41 @@
 static GLFWwindow *sWin;
 
 /* static function declerations */
-static void handleErr(int err, char const *desc);
-static void handleFrambufferResize(GLFWwindow *win, int w, int h);
-static void handleNeedRefresh(GLFWwindow *win);
-static void handleFocus(GLFWwindow *win, int focused);
-static void handleKey(GLFWwindow *win, int key, int scancode, int action, int mods);
-static void handleMouseButton(GLFWwindow *win, int button, int action, int mods);
-static void handleCursorPos(GLFWwindow *win, double xPos, double yPos);
+static void onErr(int err, const char *desc);
+static void onFrmBufResz(GLFWwindow *win, FPARS(int, w, h));
+static void onNeedRefresh(GLFWwindow *win);
+static void onFocus(GLFWwindow *win, int focused);
+static void onKey(GLFWwindow *win, FPARS(int, key, code, actn, mods));
+static void onMsBtn(GLFWwindow *win, FPARS(int, btn, actn, mods));
+static void onCursMv(GLFWwindow *win, FPARS(double, x, y));
 static int initWin(void);
 static void term(int status);
 static void run(void);
 
-/* function implementations */
-void
-handleErr(int err, char const *desc)
+/* static function implementations */
+static void
+onErr(int err, const char *desc)
 {
 	eprintf("received glfw error no. %d: %s.\n", err, desc);
 }
 
-void
-handleFrambufferResize(GLFWwindow *win, int w, int h)
+static void
+onFrmBufResz(GLFWwindow *win, FPARS(int, w, h))
 {
 	glViewport(0, 0, w, h);
 	drawSetAspectRatio((float)w / h);
 }
 
-// but first make sure if it is needed
-void
-handleNeedRefresh(GLFWwindow *win)
+// but first make sure it is needed
+static void
+onNeedRefresh(GLFWwindow *win)
 {
 //	drawFrame();
 //	glfwSwapBuffers(win);
 }
 
-void
-handleFocus(GLFWwindow *win, int focused)
+static void
+onFocus(GLFWwindow *win, int focused)
 {
 	if (focused)
 		glfwSetInputMode(sWin, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -56,42 +57,39 @@ handleFocus(GLFWwindow *win, int focused)
 		glfwSetInputMode(sWin, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 }
 
-void
-handleKey(GLFWwindow *win, int key, int scancode, int action, int mods)
+static void
+onKey(GLFWwindow *win, FPARS(int, key, code, actn, mods))
 {
-	static int toggle = 0;
+	static int toggl = 0;
 	int focused;
 
-	/*
-	 * little hack to fake (un)focus events to prevent
-	 * the cursor from getting grabbed
-	 */
-	if (key == GLFW_KEY_ESCAPE && mods == GLFW_MOD_ALT && action == GLFW_PRESS) {
+	/* little hack to fake (un)focus events for releasing the cursor */
+	if (key == GLFW_KEY_ESCAPE && mods == GLFW_MOD_ALT && actn == GLFW_PRESS) {
 		focused = glfwGetWindowAttrib(win, GLFW_FOCUSED);
-		handleFocus(win, !focused || toggle);
-		toggle = !toggle;
+		onFocus(win, !focused || toggl);
+		toggl = !toggl;
 		return;
 	}
 
-	inputKey(key, mods, action);
+	inputKey(key, mods, actn);
 }
 
-void
-handleMouseButton(GLFWwindow *win, int button, int action, int mods)
+static void
+onMsBtn(GLFWwindow *win, FPARS(int, btn, actn, mods))
 {
-	inputMouseButton(button, mods, action);
+	inputMsBtn(btn, mods, actn);
 }
 
-void
-handleCursorPos(GLFWwindow *win, double xPos, double yPos)
+static void
+onCursMv(GLFWwindow *win, FPARS(double, x, y))
 {
-	inputCursorPos(xPos, yPos);
+	inputCursMv(x, y);
 }
 
-int
+static int
 initWin(void)
 {
-	glfwSetErrorCallback(&handleErr);
+	glfwSetErrorCallback(&onErr);
 
 	if (!glfwInit())
 		return 0;
@@ -107,13 +105,13 @@ initWin(void)
 	gladLoadGL(glfwGetProcAddress);
 	glfwSwapInterval(sConfig.vsync);
 
-	glfwSetFramebufferSizeCallback(sWin, &handleFrambufferResize);
-	glfwSetWindowRefreshCallback(sWin, &handleNeedRefresh);
-	glfwSetWindowFocusCallback(sWin, &handleFocus);
+	glfwSetFramebufferSizeCallback(sWin, &onFrmBufResz);
+	glfwSetWindowRefreshCallback(sWin, &onNeedRefresh);
+	glfwSetWindowFocusCallback(sWin, &onFocus);
 
-	glfwSetKeyCallback(sWin, &handleKey);
-	glfwSetMouseButtonCallback(sWin, &handleMouseButton);
-	glfwSetCursorPosCallback(sWin, &handleCursorPos);
+	glfwSetKeyCallback(sWin, &onKey);
+	glfwSetMouseButtonCallback(sWin, &onMsBtn);
+	glfwSetCursorPosCallback(sWin, &onCursMv);
 
 	glfwSetInputMode(sWin, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 //	glfwSetCursorPos(sWin, 0.0, 0.0);
@@ -121,11 +119,11 @@ initWin(void)
 	return 1;
 }
 
-void
+static void
 run(void)
 {
 	while (!glfwWindowShouldClose(sWin)) {
-		if (worldUpdate(glfwGetTime())) {
+		if (wldUpdate(glfwGetTime())) {
 			drawFrame();
 			glfwSwapBuffers(sWin);
 		}
@@ -135,7 +133,7 @@ run(void)
 	}
 }
 
-void
+static void
 term(int status)
 {
 	glfwDestroyWindow(sWin);
@@ -150,7 +148,7 @@ main(int argc, char *argv[])
 	if (!initWin() || !drawInit())
 		term(1);
 
-	worldInit();
+	wldInit();
 	run();
 	term(0);
 }

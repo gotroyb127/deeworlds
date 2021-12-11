@@ -1,12 +1,17 @@
 /* player.h */
 
-void playerInit(void);
-void playerSpawn(vec3 const *pos);
+struct player {
+	struct vec3 pos, vel;
+	struct vec3 box;
+	struct vec3 selAcl;
+	struct vec3 viewDir;
+	const struct motionPars *mtnPars;
+};
 
-void playerSetAccel(vec3 const *accp);
-void playerAddAccel(vec3 const *accp);
-void playerSubAccel(vec3 const *accp);
-void playerRotCam(vec3 const *addDir);
+void plrInit(struct player *pl, const struct vec3 *box);
 
-void playerGetPos(vec3 *plPos, vec3 *plDir);
-void playerMove(MotionParams const *mpar, double dt);
+void plrCtlAclSet(struct player *pl, const struct vec3 *set);
+void plrCtlAclAdd(struct player *pl, const struct vec3 *add);
+void plrCtlCamRot(struct player *pl, const struct vec3 *add);
+
+void plrMove(struct player *pl, double dt);

@@ -6,69 +6,62 @@
 #include "world.h"
 #include "playerAction.h"
 #include "input.h"
+#include "do.h"
 
 #include "inputConfig.h"
 
 void
-inputKey(int key, int mods, int action)
+inputKey(FPARS(int, key, mods, actn))
 {
-	ActionKey const *ak;
+	const struct actionKey *ak;
 	unsigned int i;
 
-	for (i = 0; i < NELEM(sActionsKey); i++) {
-		ak = &sActionsKey[i];
-
-		if (ak->key == key
-		&& ak->mods == mods
-		&& ak->action == action
-		)
+	for (i = 0; i < NELM(sActnKeys); i++) {
+		ak = &sActnKeys[i];
+		if (ak->key == key && ak->mods == mods
+		&& ak->actn == actn)
 			ak->func(&ak->arg);
 	}
 }
 
 void
-inputMouseButton(int button, int mods, int action)
+inputMsBtn(FPARS(int, btn, mods, actn))
 {
-	ActionMouseButton const *amb;
+	const struct actionMsBtn *ab;
 	unsigned int i;
 
-	for (i = 0; i < NELEM(sActionsMouseButton); i++) {
-		amb = &sActionsMouseButton[i];
-
-		if (amb->button == button
-		&& amb->mods == mods
-		&& amb->action == action
-		)
-			amb->func(&amb->arg);
+	for (i = 0; i < NELM(sActnMsBtns); i++) {
+		ab = &sActnMsBtns[i];
+		if (ab->btn == btn && ab->mods == mods
+		&& ab->actn == actn)
+			ab->func(&ab->arg);
 	}
 }
 
 void
-inputCursorPos(double xPos, double yPos)
+inputCursMv(FPARS(double, x, y))
 {
-	static double xPrev, yPrev;
-	static int once = 0;
+	static double xp, yp;
+	static int first = 1;
+	const struct actionCurs *ac;
+	union actionArg arg;
+	struct vec2 dm;
+	unsigned int i;
 
-	ActionCursor const *ac;
-	ActionArg arg;
-	vec2 dm;
-	unsigned int i, c;
+	if (first) {
+		dm = vec2_zero;
+		first = 0;
+	} else
+		vec2_set(&dm, x - xp, y - yp);
+	xp = x;
+	yp = y;
 
-	if (!once) {
-		dm.x = 0.f;
-		dm.y = 0.f;
-		once = 1;
-	} else {
-		dm.x = xPos - xPrev;
-		dm.y = yPos - yPrev;
-	}
-	xPrev = xPos;
-	yPrev = yPos;
-
-	for (i = 0; i < NELEM(sActionsCursor); i++) {
-		ac = &sActionsCursor[i];
-		for (c = 0; c < 3; c++)
-			VEC3_COMP_IDX(arg.v3, c) = vec2_dot(&ac->v2s[c], &dm);
+	for (i = 0; i < NELM(sActnCurs); i++) {
+		ac = &sActnCurs[i];
+		#define m(I, C) \
+			arg.v3.C = vec2_dot(&ac->v2s[I], &dm);
+		do3(m);
+		#undef m
 		ac->func(&arg);
 	}
 }
