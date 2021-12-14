@@ -18,8 +18,8 @@ inputKey(FPARS(int, key, mods, actn))
 
 	for (i = 0; i < NELM(sActnKeys); i++) {
 		ak = &sActnKeys[i];
-		if (ak->key == key && ak->mods == mods
-		&& ak->actn == actn)
+		if (ak->key == key && ak->actn == actn &&
+		(ak->mods == mods || ak->mods == MODANY))
 			ak->func(&ak->arg);
 	}
 }
@@ -32,8 +32,8 @@ inputMsBtn(FPARS(int, btn, mods, actn))
 
 	for (i = 0; i < NELM(sActnMsBtns); i++) {
 		ab = &sActnMsBtns[i];
-		if (ab->btn == btn && ab->mods == mods
-		&& ab->actn == actn)
+		if (ab->btn == btn && ab->actn == actn &&
+		(ab->mods == mods || ab->mods == MODANY))
 			ab->func(&ab->arg);
 	}
 }

@@ -18,7 +18,7 @@ allsrcs() {
 	               inputConfig.h do.h
 	player.c       util.h vecmath.h worldParams.h player.h do.h
 	playerAction.c util.h vecmath.h world.h worldParams.h \
-	               player.h playerAction.h
+	               player.h playerAction.h do.h
 	vecmath.c      util.h vecmath.h do.h
 	world.c        util.h vecmath.h world.h worldParams.h \
 	               worldConfig.h player.h do.h

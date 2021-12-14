@@ -220,12 +220,14 @@ vec3_scalvi(struct vec3 *a, const struct vec3 *b)
 }
 
 struct vec3 *
-vec3_normlz(struct vec3 *d, const struct vec3 *v)
+vec3_normlz(struct vec3 *d, const struct vec3 *v, float *n)
 {
-	float n;
+	float f;
 
-	if ((n = vec3_norm(v)))
-		return vec3_scal(d, v, 1 / n);
+	if (!n)
+		n = &f;
+	if ((*n = vec3_norm(v)))
+		return vec3_scal(d, v, 1 / *n);
 	return vec3_cpy(d, &vec3_zero);
 }
 

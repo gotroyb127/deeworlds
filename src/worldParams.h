@@ -2,7 +2,8 @@
 
 struct motionPars {
 	float accel;
-	float maxSpeed;
+	float maxRblSpd; /* max reachable speed through accel (horizontal) */
+	float maxSpeed;  /* max speed: never speed higher than this */
 	float friction;
 	float jumpVel;
 	float gravity;

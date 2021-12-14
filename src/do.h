@@ -46,6 +46,12 @@
 		(e(2, z, __VA_ARGS__)) \
 	)
 
+#define do2xz(m) \
+	do { \
+		m(0, x) \
+		m(2, z) \
+	} while (0)
+
 #define do4(m) \
 	do { \
 		m(0, x) \

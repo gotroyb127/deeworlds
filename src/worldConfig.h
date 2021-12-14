@@ -7,21 +7,20 @@ static const struct {
 	struct laserPars  laserPars;
 } sWldPrsCfg = {
 	.mtnGnd = {
-		.accel    = 2.6f,
-//		.maxSpeed = 1.6f,
-		.friction = 0.01f,
-//		.accel    = 26.6f,
-		.maxSpeed = 106.6f,
-//		.friction = 0.95f,
-		.jumpVel  = 24.52f,
-		.gravity  = 0.f,
+		.accel     = 10.f,
+		.maxRblSpd = 30.f,
+		.maxSpeed  = 18.5f,
+		.friction  = 0.00005f,
+		.jumpVel   = 24.52f,
+		.gravity   = 0.f,
 	},
 	.mtnAir = {
-		.accel    = 2.f,
-		.maxSpeed = 7.57f,
-		.friction = 0.005f,
-		.jumpVel  = 24.52f,
-		.gravity  = 46.27f,
+		.accel     = 5.f,
+		.maxRblSpd = 10.f,
+		.maxSpeed  = 60.f,
+		.friction  = 0.04606f,
+		.jumpVel   = 22.29f,
+		.gravity   = 46.27f,
 	},
 	.hookPars = {
 		.length    = 12.66f,

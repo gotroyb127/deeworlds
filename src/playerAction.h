@@ -26,4 +26,5 @@ struct actionCurs {
 
 void plrActnAclSet(const union actionArg *arg);
 void plrActnAclAdd(const union actionArg *arg);
+void plrActnAclMul(const union actionArg *arg);
 void plrActnCamRot(const union actionArg *arg);

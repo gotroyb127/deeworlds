@@ -37,16 +37,23 @@ struct worldMap {
 static struct player sPlr;
 
 #define A WLD_BLK_AIR,
-#define H WLD_BLK_HKABLE,
-#define U WLD_BLK_UHABLE,
+#define H WLD_BLK_HKBL,
+#define U WLD_BLK_UHBL,
 static const struct worldMap sMap = {
 	.blks = {
-		{A A A H A H H},
-		{H H H A U H A},
-		{A A A H A A H},
+		{H H H H H H H H H H H H H H H H H H H H H H H H H H H H H H},
+		{H H H H H H H H H H H H H H H A A A A A A A A A A A A A A A},
+		{H H H H H H H A A A A A A A A A A A A A A A A A A A A A A A},
+		{A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A},
+		{A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A},
+		{A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A},
+		{A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A},
+		{A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A},
+		{A A A H A H H A A A A A A A A A A A A A A A A A A A A A A A},
+		{H H H A U H A A A A A A A A A A A A A A A A A A A A A A A A},
 	},
-	.spawn = {3, 1, 3},
-	.maxBlk = {6, 2, 6},
+	.spawn = {3, 3, 3},
+	.maxBlk = {29, 9, 11},
 	.minPos = {-100.f, -100.f, -100.f},
 	.maxPos = { 100.f,  100.f,  100.f},
 };
@@ -80,23 +87,27 @@ static int
 plrIsOnGnd(const struct player *pl)
 {
 	const struct vec3 *p = &pl->pos;
-	struct vec3 dp = {.y = -0.25f};
-	struct ivec3 clf, cll, cl;
-	float sc;
-	int skp[3] = {0}, t;
+	struct ivec3 bl, blf, bll;
+	float f, fl;
+	int t;
 
 	if (p->y != floorf(p->y))
 		return 0;
-	if (getBoxColn(&clf, &cll, &sc, skp, p, &dp, &pl->box) != 1)
-		return 0;
+	#define m(I, C) \
+		blf.C = floorf(p->C); \
+		fl = floorf(f = p->C + pl->box.C); \
+		bll.C = fl - (f == fl);
+	do2xz(m);
+	#undef m
+	blf.y = bll.y = p->y - 1;
 
 	#define r(I, C) \
-		for (cl.C = clf.C; cl.C <= cll.C; cl.C++)
+		for (bl.C = blf.C; bl.C <= bll.C; bl.C++)
 	do3r(r,,,) {
 	#undef r
-		if ((t = getMapBlk(&cl)) < 0)
+		if ((t = getMapBlk(&bl)) < 0)
 			continue;
-		if (t == WLD_BLK_HKABLE || t == WLD_BLK_UHABLE)
+		if (t == WLD_BLK_HKBL || t == WLD_BLK_UHBL)
 			return 1;
 	}
 
@@ -120,7 +131,7 @@ plrOnColn(struct player *pl, struct vec3 *dp, const struct ivec3 *cl, int ci)
 
 	if ((t = getMapBlk(cl)) < 0)
 		return;
-	if (t == WLD_BLK_HKABLE || t == WLD_BLK_UHABLE) {
+	if (t == WLD_BLK_HKBL || t == WLD_BLK_UHBL) {
 		if (ci == 1 && dp->y < 0.f)
 			pl->mtnPars = &sWldPrsCfg.mtnGnd;
 		(&dp->x)[ci] = 0.f;
@@ -145,7 +156,7 @@ getMapBlk(const struct ivec3 *p)
    it wouldn't, return -1. Otherwise, set the block's position in `cl`,
    return an index representing the axis along whom it collides (that
    is 0 for x, 1 for y, 2 for z) and set `sc` to indicate the portion of
-   `dp` (from 0.f to 1.f) which leads to the collision. About finding in
+   `dp` (values in [0.f, 1.f]) which leads to the collision. About finding in
    which block the object is in (and hence with which it cannot collide):
    For (C, I) in ((x, 0), (y, 1), (z, 2)): if cp->C is not equal to an integer,
    the block's C component is floorf(cp->C). Otherwise, when cp->C is equal to
@@ -159,7 +170,7 @@ getPntColn(struct ivec3 *cl, float *sc, const int in[3],
 {
 	const float *c = &cp->x, *d = &dp->x;
 	float (*head[2])(float) = {floorf, ceilf};
-	float s, ms = 2.f;
+	float s, ms = 2.f, f, fl;
 	const int next[2] = {-1, +1};
 	int i, ci = -1;
 
@@ -175,8 +186,12 @@ getPntColn(struct ivec3 *cl, float *sc, const int in[3],
 	}
 	if (ms > 1.f)
 		return -1;
-	vec3_to_ivec3(cl, cp);
-	(&cl->x)[ci] += next[d[ci] > 0.f] - (ms == 0.f && !in[ci]);
+	#define m(I, C) \
+		fl = floorf(f = cp->C + dp->C * ms); \
+		cl->C = fl - (f == fl && !in[I]);
+	do3(m);
+	#undef m
+	(&cl->x)[ci] += next[d[ci] > 0.f];
 	*sc = ms;
 	return ci;
 }
@@ -193,7 +208,7 @@ getBoxColn(FPARS(struct ivec3, *clf, *cll), float *sc, const int skp[3],
 	FPARS(const struct vec3, *cp, *dp, *box))
 {
 	struct vec3 ep;
-	struct ivec3 nedg, cl, oedg;
+	struct ivec3 nedg, ecl, oedg;
 	float f, fl;
 	int in[3], ci;
 
@@ -203,20 +218,18 @@ getBoxColn(FPARS(struct ivec3, *clf, *cll), float *sc, const int skp[3],
 		in[I] = nedg.C == skp[I];
 	do3(m);
 	#undef m
-	if ((ci = getPntColn(&cl, sc, in, &ep, dp)) < 0)
+	if ((ci = getPntColn(&ecl, sc, in, &ep, dp)) < 0)
 		return ci;
-
 	#define m(I, C) \
-		f = (cp->C + dp->C * *sc) + !nedg.C * box->C; \
-		fl = floorf(f); \
+		fl = floorf(f = (cp->C + dp->C * *sc) + !nedg.C * box->C); \
 		oedg.C = fl - (fl == f && !nedg.C);
 	do3(m);
 	#undef m
-	(&oedg.x)[ci] = (&cl.x)[ci];
+	(&oedg.x)[ci] = (&ecl.x)[ci];
 
 	#define m(I, C) \
-		clf->C =  nedg.C ? oedg.C : cl.C; \
-		cll->C = !nedg.C ? oedg.C : cl.C;
+		clf->C =  nedg.C ? oedg.C : ecl.C; \
+		cll->C = !nedg.C ? oedg.C : ecl.C;
 	do3(m);
 	#undef m
 

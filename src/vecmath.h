@@ -87,7 +87,7 @@ struct vec3 *vec3_scal(struct vec3 *d, const struct vec3 *v, float f);
 struct vec3 *vec3_scali(struct vec3 *v, float f);
 struct vec3 *vec3_scalv(struct vec3 *d, FPARS(const struct vec3, *a, *b));
 struct vec3 *vec3_scalvi(struct vec3 *a, const struct vec3 *b);
-struct vec3 *vec3_normlz(struct vec3 *d, const struct vec3 *v);
+struct vec3 *vec3_normlz(struct vec3 *d, const struct vec3 *v, float *n);
 float vec3_dot(FPARS(const struct vec3, *a, *b));
 float vec3_norm2(const struct vec3 *v);
 float vec3_norm(const struct vec3 *v);

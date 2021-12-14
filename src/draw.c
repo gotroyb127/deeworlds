@@ -79,8 +79,8 @@ static GLuint sCurrTexUnf;
 static float sAspRatio = 1.f;
 static struct blkTex sBlkTexs[WLD_BLK_LAST] = {
 	[WLD_BLK_AIR]    = {.texFnm = NULL},
-	[WLD_BLK_HKABLE] = {.texFnm = "data/texs/blk_hkable.ff"},
-	[WLD_BLK_UHABLE] = {.texFnm = "data/texs/blk_uhable.ff"},
+	[WLD_BLK_HKBL] = {.texFnm = "data/texs/blk_hkbl.ff"},
+	[WLD_BLK_UHBL] = {.texFnm = "data/texs/blk_uhbl.ff"},
 };
 
 /* static function implementations */
@@ -90,9 +90,9 @@ initProg(void)
 	unsigned int i;
 	GLuint shds[2];
 
-	if (!compileShd(&shds[0], GL_VERTEX_SHADER, sVertShadSrc)
-	|| !compileShd(&shds[1], GL_FRAGMENT_SHADER, sFragShadSrc)
-	|| !linkProg(&sProg, NELM(shds), shds))
+	if (!compileShd(&shds[0], GL_VERTEX_SHADER, sVertShadSrc) ||
+	!compileShd(&shds[1], GL_FRAGMENT_SHADER, sFragShadSrc) ||
+	!linkProg(&sProg, NELM(shds), shds))
 		return 0;
 
 	for (i = 0; i < NELM(shds); i++)
@@ -100,7 +100,6 @@ initProg(void)
 
 	sWldToView.unf = glGetUniformLocation(sProg, "worldToView");
 	sMdlToWld.unf = glGetUniformLocation(sProg, "modelToWorld");
-
 	sCurrTexUnf = glGetUniformLocation(sProg, "currTex");
 
 	return 1;

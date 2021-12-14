@@ -6,7 +6,8 @@
 #include "player.h"
 #include "do.h"
 
-#define TRUNC(X, A, B) ((X) < (A) ? (A) : (X) > (B) ? (B) : (X))
+#define MIN(X, Y) ((X) < (Y) ? (X) : (Y))
+#define MAX(X, Y) ((X) > (Y) ? (X) : (Y))
 
 /* non-static function implementations */
 void
@@ -15,36 +16,6 @@ plrInit(struct player *pl, const struct vec3 *box)
 	*pl = (struct player){
 		.box = *box,
 	};
-}
-
-void
-plrCtlAclSet(struct player *pl, const struct vec3 *set)
-{
-	#define m(I, C) \
-		pl->selAcl.C = TRUNC(set->C, -1.f, 1.f);
-	do3(m);
-	#undef m
-}
-
-void
-plrCtlAclAdd(struct player *pl, const struct vec3 *add)
-{
-	#define m(I, C) \
-		pl->selAcl.C = TRUNC(pl->selAcl.C + add->C, -1.f, 1.f);
-	do3(m);
-	#undef m
-}
-
-void
-plrCtlCamRot(struct player *pl, const struct vec3 *addDir)
-{
-	struct vec3 *vDir = &pl->viewDir;
-
-	vDir->x = TRUNC(vDir->x + addDir->x, -M_PI_2, M_PI_2);
-	vDir->y = fmodf(vDir->y + addDir->y, 2 * M_PI);
-	/* unused:
-	vDir->z = fmodf(vDir->z + addDir->z, 2 * M_PI);
-	*/
 }
 
 #define DEBUG 1
@@ -56,13 +27,12 @@ plrMove(struct player *pl, double dt)
 {
 	const struct motionPars *mpar = pl->mtnPars;
 	struct mat3 rotm;
-	struct vec3 facDir, hVel, unwVel, wanVel, tmpv;
+	struct vec3 selDir, hVel, unwVel, wanVel, v;
 	struct vec3 *pos = &pl->pos, *vel = &pl->vel, *selAcl = &pl->selAcl,
 		*viewDir = &pl->viewDir;
-	float hSpeed, tmpf;
+	float f, n, acl;
 
-	vec3_addi(pos, vec3_scal(&tmpv, vel, dt));
-
+	vec3_addi(pos, vec3_scal(&v, vel, dt));
 	/* jump */
 	if (selAcl->y > 0.f)
 		vel->y = selAcl->y * mpar->jumpVel;
@@ -71,28 +41,33 @@ plrMove(struct player *pl, double dt)
 	selAcl->y = 0.f;
 
 	mat3_roty(&rotm, &mat3_identity, -viewDir->y);
-	mat3_mulv(&facDir, &rotm, vec3_normlz(&tmpv, selAcl));
+	mat3_mulv(&selDir, &rotm, vec3_normlz(&v, selAcl, &n));
 
-	tmpf = vec3_dot(vec3_set(&hVel, vel->x, 0.f, vel->z), &facDir);
-	vec3_scal(&wanVel, &facDir, tmpf > 0.f ? tmpf : 0.f);
+	f = vec3_dot(vec3_set(&hVel, vel->x, 0.f, vel->z), &selDir);
+	vec3_scal(&wanVel, &selDir, f > 0.f ? f : 0.f);
 	vec3_sub(&unwVel, &hVel, &wanVel);
 
-	/* accelerate wanted velocity */
-	tmpf = mpar->accel * dt;
-	wanVel.x += facDir.x * tmpf;
-	wanVel.z += facDir.z * tmpf;
-
+	acl = mpar->accel * MIN(n, 1.f);
+	if (vec3_norm2(&wanVel) < M_SQR(mpar->maxRblSpd)) {
+		/* accelerate wanted velocity */
+		#define m(I, C) \
+			wanVel.C += selDir.C * acl * dt;
+		do2xz(m);
+		#undef m
+		if ((f = vec3_norm2(&wanVel)) > M_SQR(mpar->maxRblSpd))
+			vec3_scali(&wanVel, mpar->maxRblSpd / sqrt(f));
+	}
 	/* apply friction to unwated velocity */
-	tmpf = powf(mpar->friction, dt);
-	unwVel.x *= tmpf;
-	unwVel.z *= tmpf;
+	vec3_scali(&unwVel, powf(mpar->friction, dt));
 
-	vec3_add(&hVel, &wanVel, &unwVel);
+	#define m(I, C) \
+		vel->C = wanVel.C + unwVel.C;
+	do2xz(m);
+	#undef m
 
-	if ((hSpeed = vec3_norm(&hVel)) > mpar->maxSpeed)
-		vec3_scali(&hVel, mpar->maxSpeed / hSpeed);
-	vel->x = hVel.x;
-	vel->z = hVel.z;
+	/* limit velocity to mpar->maxSpeed */
+	if ((f = vec3_norm2(vel)) > M_SQR(mpar->maxSpeed))
+		vec3_scali(vel, mpar->maxSpeed / sqrt(f));
 #if DEBUG
 #define VEC3_PRINT_N(v) VEC3_PRINTF(v, " %-10f\n", vec3_norm(v))
 #define VEC3_PRINT(v) \
@@ -103,16 +78,18 @@ plrMove(struct player *pl, double dt)
 		printf(__VA_ARGS__); \
 	} while (0)
 
-	static unsigned int n = 0;
-	if (n++)
-		printf("\033[7A\033[K");
-	printf("hSpeed: %-10f, friction: %-10f\n", vec3_norm(&hVel), tmpf);
+	static unsigned int i = 0;
+	if (i++)
+		printf("\033[8A\033[K");
+	printf("hSpeed: %-10f, acl: %-10f, n: %-10f\n",
+		vec3_norm(vec3_set(&hVel, vel->x, 0.f, vel->z)), acl, n);
 	printf("dt: %-10g, fps: %-10g\n", dt, 1 / dt);
 
-	VEC3_PRINT_N(&facDir);
+	VEC3_PRINT_N(selAcl);
+	VEC3_PRINT_N(&selDir);
 	VEC3_PRINT_N(&wanVel);
 	VEC3_PRINT_N(&unwVel);
 	VEC3_PRINT(pos);
-	VEC3_PRINT(vel);
+	VEC3_PRINT_N(vel);
 #endif /* DEBUG */
 }

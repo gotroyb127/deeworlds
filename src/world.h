@@ -3,8 +3,8 @@
 enum {
 	WLD_BLK_NONE = -1,
 	WLD_BLK_AIR,
-	WLD_BLK_HKABLE,
-	WLD_BLK_UHABLE,
+	WLD_BLK_HKBL, /* hookable */
+	WLD_BLK_UHBL, /* unhookable */
 	WLD_BLK_LAST,
 };
 
